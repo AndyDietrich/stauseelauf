@@ -125,7 +125,7 @@
                 </button>
 
                 <p class="payment-note">
-                    Sichere Bezahlung über Stripe. Nach erfolgreicher Zahlung erhältst du eine Bestätigung.
+                    Nach erfolgreicher Zahlung erhältst du eine Bestätigung per E-Mail.
                 </p>
             </form>
         </section>
@@ -136,12 +136,12 @@
             <p><strong>Nachmeldegebühr:</strong> 15 EUR (nur Barzahlung)</p>
         </section>
 
-        <!-- Ergebnisse - nur sichtbar wenn veröffentlicht -->
+        <!-- Ergebnisse/Teilnehmerliste - nur sichtbar wenn veröffentlicht -->
         <section class="info-section" id="ergebnisse-section" style="display: none;">
-            <h2>Ergebnisse</h2>
+            <h2 id="ergebnisse-heading">Ergebnisse</h2>
             <div id="results-tabs" style="margin-bottom: 20px;">
-                <button class="tab-btn active" onclick="showResults('5.3km')">5,3 km</button>
-                <button class="tab-btn" onclick="showResults('10.6km')">10,6 km</button>
+                <button class="tab-btn active" onclick="switchDistance('5.3km')">5,3 km</button>
+                <button class="tab-btn" onclick="switchDistance('10.6km')">10,6 km</button>
             </div>
             <table id="results-table">
                 <thead>
@@ -172,7 +172,6 @@
         Jetzt anmelden
     </a>
 
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

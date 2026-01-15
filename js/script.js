@@ -1,18 +1,8 @@
-// ============================================
-// KONFIGURATION
-// ============================================
 const CONFIG = {
-    // Demo-Modus: Verwendet LocalStorage statt echtem Backend
-    DEMO_MODE: true,
-
-    // URL des Google Apps Script Web-App (für Produktion)
-    APPS_SCRIPT_URL: 'HIER_GOOGLE_APPS_SCRIPT_URL_EINTRAGEN',
-
-    // LocalStorage Keys
-    STORAGE_KEYS: {
-        REGISTRATIONS: 'stauseelauf_registrations',
-        RESULTS_PUBLISHED: 'stauseelauf_published'
-    }
+    API_KEY: 'AIzaSyB-HTifZC8FyydU06OPxsdKEsea-k7SgIY',
+    SPREADSHEET_ID: '1aRfbY4shiAEZWpvK6JPkQsR4rbn_rbyhLysrpwH01UM',
+    SHEET_NAME: 'Tabelle1',
+    PUBLISH_CELL: 'N1' // Cell to check for publish status (e.g., contains "TRUE")
 };
 
 // ============================================
@@ -20,27 +10,17 @@ const CONFIG = {
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('registration-form');
-    const stickyCta = document.getElementById('sticky-cta');
-
-    // Sticky Button verstecken wenn Formular sichtbar
-    setupStickyButton(stickyCta);
-
-    // Geburtsdatum Auto-Formatierung
-    setupBirthDateInput();
-
-    // Formular Submit Handler
-    form.addEventListener('submit', handleFormSubmit);
-
-    // URL Parameter prüfen (Fehler/Erfolg)
-    checkUrlParams();
-
-    // Demo-Modus Banner anzeigen
-    if (CONFIG.DEMO_MODE) {
-        showDemoBanner();
+    if (form) {
+        const stickyCta = document.getElementById('sticky-cta');
+        setupStickyButton(stickyCta);
+        setupBirthDateInput();
+        form.addEventListener('submit', handleFormSubmit);
+        checkUrlParams();
     }
 
-    // Ergebnisse laden
-    loadResults();
+    if (document.getElementById('ergebnisse-section')) {
+        loadResults();
+    }
 });
 
 // ============================================
@@ -48,16 +28,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 function setupStickyButton(stickyCta) {
     const registrationSection = document.getElementById('anmeldung');
+    if (!stickyCta || !registrationSection) return;
 
     function checkVisibility() {
         const rect = registrationSection.getBoundingClientRect();
         const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-
-        if (isVisible) {
-            stickyCta.classList.add('hidden');
-        } else {
-            stickyCta.classList.remove('hidden');
-        }
+        stickyCta.classList.toggle('hidden', isVisible);
     }
 
     window.addEventListener('scroll', checkVisibility);
@@ -70,50 +46,35 @@ function setupStickyButton(stickyCta) {
 // ============================================
 function setupBirthDateInput() {
     const birthDateInput = document.getElementById('birthDate');
+    if (!birthDateInput) return;
 
     birthDateInput.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
-
-        if (value.length >= 2) {
-            value = value.slice(0, 2) + '.' + value.slice(2);
-        }
-        if (value.length >= 5) {
-            value = value.slice(0, 5) + '.' + value.slice(5);
-        }
-        if (value.length > 10) {
-            value = value.slice(0, 10);
-        }
-
+        if (value.length >= 2) value = value.slice(0, 2) + '.' + value.slice(2);
+        if (value.length >= 5) value = value.slice(0, 5) + '.' + value.slice(5);
+        if (value.length > 10) value = value.slice(0, 10);
         e.target.value = value;
     });
 
-    // Validierung beim Verlassen des Feldes
     birthDateInput.addEventListener('blur', function(e) {
         const value = e.target.value;
-        if (value && !isValidGermanDate(value)) {
-            e.target.classList.add('error');
-        } else {
-            e.target.classList.remove('error');
-        }
+        e.target.classList.toggle('error', value && !isValidGermanDate(value));
     });
 }
 
 function isValidGermanDate(dateStr) {
     const regex = /^(\d{2})\.(\d{2})\.(\d{4})$/;
     const match = dateStr.match(regex);
-
     if (!match) return false;
 
     const day = parseInt(match[1], 10);
     const month = parseInt(match[2], 10);
     const year = parseInt(match[3], 10);
 
-    if (month < 1 || month > 12) return false;
-    if (day < 1 || day > 31) return false;
-    if (year < 1900 || year > new Date().getFullYear()) return false;
+    if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > new Date().getFullYear()) return false;
 
     const date = new Date(year, month - 1, day);
-    return date.getDate() === day && date.getMonth() === month - 1;
+    return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
 }
 
 // ============================================
@@ -121,10 +82,7 @@ function isValidGermanDate(dateStr) {
 // ============================================
 async function handleFormSubmit(e) {
     e.preventDefault();
-
-    if (!validateForm()) {
-        return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
     removeError();
@@ -139,31 +97,8 @@ async function handleFormSubmit(e) {
         club: document.getElementById('club').value.trim() || '-',
     };
 
-    if (CONFIG.DEMO_MODE) {
-        // Demo-Modus: Lokaler Test-Server oder simulierte Checkout-Seite
-        await handleDemoCheckout(formData);
-    } else {
-        // Produktiv-Modus: Google Apps Script + Stripe
-        handleProductionCheckout(formData);
-    }
-}
-
-// ============================================
-// DEMO-MODUS (LocalStorage)
-// ============================================
-async function handleDemoCheckout(formData) {
-    // Daten als URL-Parameter für Checkout-Seite
     const params = new URLSearchParams(formData);
     window.location.href = 'demo-checkout.html?' + params.toString();
-}
-
-function handleProductionCheckout(formData) {
-    const params = new URLSearchParams({
-        action: 'createCheckout',
-        ...formData
-    });
-
-    window.location.href = CONFIG.APPS_SCRIPT_URL + '?' + params.toString();
 }
 
 // ============================================
@@ -173,11 +108,17 @@ function validateForm() {
     let isValid = true;
     removeError();
 
-    const requiredFields = ['firstName', 'lastName', 'email', 'birthDate', 'gender', 'distance'];
-
+    const requiredFields = ['firstName', 'lastName', 'email', 'birthDate', 'gender', 'distance', 'privacy'];
     requiredFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
-        if (!field.value.trim()) {
+        if (field.type === 'checkbox') {
+            if (!field.checked) {
+                field.parentElement.classList.add('error');
+                isValid = false;
+            } else {
+                field.parentElement.classList.remove('error');
+            }
+        } else if (!field.value.trim()) {
             field.classList.add('error');
             isValid = false;
         } else {
@@ -185,24 +126,15 @@ function validateForm() {
         }
     });
 
-    // E-Mail Format
     const email = document.getElementById('email');
     if (email.value && !isValidEmail(email.value)) {
         email.classList.add('error');
         isValid = false;
     }
 
-    // Geburtsdatum Format
     const birthDate = document.getElementById('birthDate');
     if (birthDate.value && !isValidGermanDate(birthDate.value)) {
         birthDate.classList.add('error');
-        isValid = false;
-    }
-
-    // Datenschutz
-    const privacy = document.getElementById('privacy');
-    if (!privacy.checked) {
-        showError('Bitte akzeptiere die Datenschutzerklärung.');
         isValid = false;
     }
 
@@ -222,8 +154,10 @@ function isValidEmail(email) {
 // ============================================
 function setLoading(loading) {
     const submitBtn = document.getElementById('submit-btn');
-    submitBtn.classList.toggle('loading', loading);
-    submitBtn.disabled = loading;
+    if(submitBtn) {
+        submitBtn.classList.toggle('loading', loading);
+        submitBtn.disabled = loading;
+    }
 }
 
 function showError(message) {
@@ -247,87 +181,129 @@ function checkUrlParams() {
     }
 }
 
-function showDemoBanner() {
-    const banner = document.createElement('div');
-    banner.className = 'demo-banner';
-    banner.innerHTML = 'DEMO-MODUS - Keine echten Zahlungen';
-    document.body.insertBefore(banner, document.body.firstChild);
-
-    const style = document.createElement('style');
-    style.textContent = `
-        .demo-banner {
-            background: #ff9800;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 9999;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
 // ============================================
 // ERGEBNISSE
 // ============================================
 let allResults = [];
 let currentDistance = '5.3km';
 
-async function loadResults() {
+async function getPublishMode() {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.SHEET_NAME}!${CONFIG.PUBLISH_CELL}?key=${CONFIG.API_KEY}`;
     try {
-        if (CONFIG.DEMO_MODE) {
-            // Demo: Von LocalStorage laden
-            const published = localStorage.getItem(CONFIG.STORAGE_KEYS.RESULTS_PUBLISHED) === 'true';
-            const registrations = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REGISTRATIONS) || '[]');
+        const response = await fetch(url);
+        const data = await response.json();
+        const value = data.values && data.values[0] && data.values[0][0];
+        return value || 'FALSE';
+    } catch (e) {
+        console.error('Error checking publish status:', e);
+        return 'FALSE';
+    }
+}
 
-            if (published) {
-                // Nur Einträge mit Zeit anzeigen
-                allResults = registrations
-                    .filter(r => r.zeit && r.zeit !== '')
-                    .map(r => ({
-                        vorname: r.vorname || r.firstName,
-                        nachname: r.nachname || r.lastName,
-                        zeit: r.zeit,
-                        strecke: r.strecke || r.distance,
-                        verein: r.verein || r.club || '-'
-                    }));
+let currentMode = 'FALSE';
 
-                if (allResults.length > 0) {
-                    document.getElementById('ergebnisse-section').style.display = 'block';
-                    showResults('5.3km');
-                }
+async function loadResults() {
+    currentMode = await getPublishMode();
+    if (currentMode === 'FALSE') {
+        console.log('Nothing published.');
+        return;
+    }
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.SHEET_NAME}?key=${CONFIG.API_KEY}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const headers = data.values[0];
+        const resultsData = data.values.slice(1);
+
+        allResults = resultsData.map(row => {
+            const result = {};
+            headers.forEach((header, index) => {
+                result[header] = row[index];
+            });
+            return result;
+        });
+
+        // Filter based on mode
+        if (currentMode === 'ERGEBNISLISTE') {
+            allResults = allResults.filter(r => r.Zeit && r.Zeit !== '');
+        }
+
+        if (allResults.length > 0) {
+            const section = document.getElementById('ergebnisse-section');
+            const heading = document.getElementById('ergebnisse-heading');
+
+            section.style.display = 'block';
+
+            if (currentMode === 'TEILNEHMERLISTE') {
+                heading.textContent = 'Teilnehmerliste';
+                updateTableHeaders(false);
+                showParticipants('5.3km');
+            } else {
+                heading.textContent = 'Ergebnisse';
+                updateTableHeaders(true);
+                showResults('5.3km');
             }
-        } else {
-            // Produktion: Von Google Apps Script laden (TODO)
         }
     } catch (e) {
-        console.log('Ergebnisse nicht verfügbar');
+        console.error('Error loading data:', e);
     }
+}
+
+function updateTableHeaders(showResults) {
+    const thead = document.querySelector('#results-table thead tr');
+    if (showResults) {
+        thead.innerHTML = '<th>Platz</th><th>Name</th><th>Verein</th><th>Zeit</th><th>Urkunde</th>';
+    } else {
+        thead.innerHTML = '<th>Name</th><th>Verein</th>';
+    }
+}
+
+function switchDistance(distance) {
+    if (currentMode === 'TEILNEHMERLISTE') {
+        showParticipants(distance);
+    } else {
+        showResults(distance);
+    }
+}
+
+function showParticipants(distance) {
+    currentDistance = distance;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.includes(distance.replace('km', '')));
+    });
+
+    const filtered = allResults
+        .filter(r => r.Strecke === distance)
+        .sort((a, b) => (a.Nachname || '').localeCompare(b.Nachname || ''));
+
+    const tbody = document.getElementById('results-body');
+    tbody.innerHTML = filtered.map(r => `
+        <tr>
+            <td>${r.Vorname} ${r.Nachname}</td>
+            <td>${r.Verein || '-'}</td>
+        </tr>
+    `).join('');
 }
 
 function showResults(distance) {
     currentDistance = distance;
-
-    // Tabs aktualisieren
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.includes(distance.includes('10') ? '10' : '5'));
+        btn.classList.toggle('active', btn.textContent.includes(distance.replace('km', '')));
     });
 
-    // Ergebnisse filtern und sortieren
     const filtered = allResults
-        .filter(r => (r.strecke || '').includes(distance.includes('10') ? '10' : '5.3'))
-        .sort((a, b) => (a.zeit || '99:99').localeCompare(b.zeit || '99:99'));
+        .filter(r => r.Strecke === distance)
+        .sort((a, b) => (a.Zeit || '99:99:99').localeCompare(b.Zeit || '99:99:99'));
 
     const tbody = document.getElementById('results-body');
     tbody.innerHTML = filtered.map((r, i) => `
         <tr>
             <td>${i + 1}</td>
-            <td>${r.vorname} ${r.nachname}</td>
-            <td>${r.verein || '-'}</td>
-            <td>${r.zeit}</td>
-            <td><button class="urkunde-btn" onclick="generateCertificate(${i + 1}, '${r.vorname}', '${r.nachname}', '${r.zeit}', '${r.strecke}', '${r.verein || '-'}')">PDF</button></td>
+            <td>${r.Vorname} ${r.Nachname}</td>
+            <td>${r.Verein || '-'}</td>
+            <td>${r.Zeit}</td>
+            <td><button class="urkunde-btn" onclick="generateCertificate(${i + 1}, '${r.Vorname}', '${r.Nachname}', '${r.Zeit}', '${r.Strecke}', '${r.Verein || '-'}')">PDF</button></td>
         </tr>
     `).join('');
 }
@@ -336,7 +312,7 @@ function showResults(distance) {
 // URKUNDEN PDF GENERIERUNG
 // ============================================
 function generateCertificate(platz, vorname, nachname, zeit, strecke, verein) {
-    // Einfache PDF-Generierung mit Canvas
+    // ... (rest of the function is unchanged)
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 1131; // A4 Verhältnis
