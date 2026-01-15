@@ -229,20 +229,14 @@
             console.log('Sende Daten:', dataToSend);
 
             try {
-                const response = await fetch('http://localhost:3000/api/complete', {
+                const response = await fetch('https://script.google.com/macros/s/AKfycbwJUhrzm1YXtHw6bQc-PdCPMXEDGwC1yHm6V_9XIuPQbqeMiCNRD0ZtklK0ycaFt_TB/exec', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dataToSend)
                 });
-                console.log('Server Response:', response.status);
+                const result = await response.json();
+                console.log('Server Response:', result);
             } catch (e) {
-                console.log('Server nicht erreichbar, speichere lokal');
-                const registrations = JSON.parse(localStorage.getItem('stauseelauf_registrations') || '[]');
-                registrations.push({
-                    timestamp: new Date().toLocaleString('de-DE'),
-                    ...dataToSend
-                });
-                localStorage.setItem('stauseelauf_registrations', JSON.stringify(registrations));
+                console.error('Fehler beim Speichern:', e);
             }
 
             setTimeout(() => {

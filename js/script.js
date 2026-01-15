@@ -1,8 +1,5 @@
 const CONFIG = {
-    API_KEY: 'AIzaSyB-HTifZC8FyydU06OPxsdKEsea-k7SgIY',
-    SPREADSHEET_ID: '1aRfbY4shiAEZWpvK6JPkQsR4rbn_rbyhLysrpwH01UM',
-    SHEET_NAME: 'Tabelle1',
-    PUBLISH_CELL: 'N1' // Cell to check for publish status (e.g., contains "TRUE")
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwJUhrzm1YXtHw6bQc-PdCPMXEDGwC1yHm6V_9XIuPQbqeMiCNRD0ZtklK0ycaFt_TB/exec'
 };
 
 // ============================================
@@ -186,43 +183,20 @@ function checkUrlParams() {
 // ============================================
 let allResults = [];
 let currentDistance = '5.3km';
-
-async function getPublishMode() {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.SHEET_NAME}!${CONFIG.PUBLISH_CELL}?key=${CONFIG.API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        const value = data.values && data.values[0] && data.values[0][0];
-        return value || 'FALSE';
-    } catch (e) {
-        console.error('Error checking publish status:', e);
-        return 'FALSE';
-    }
-}
-
 let currentMode = 'FALSE';
 
 async function loadResults() {
-    currentMode = await getPublishMode();
-    if (currentMode === 'FALSE') {
-        console.log('Nothing published.');
-        return;
-    }
-
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${CONFIG.SHEET_NAME}?key=${CONFIG.API_KEY}`;
     try {
-        const response = await fetch(url);
+        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
         const data = await response.json();
-        const headers = data.values[0];
-        const resultsData = data.values.slice(1);
 
-        allResults = resultsData.map(row => {
-            const result = {};
-            headers.forEach((header, index) => {
-                result[header] = row[index];
-            });
-            return result;
-        });
+        currentMode = data.status || 'FALSE';
+        if (currentMode === 'FALSE') {
+            console.log('Nothing published.');
+            return;
+        }
+
+        allResults = data.data || [];
 
         // Filter based on mode
         if (currentMode === 'ERGEBNISLISTE') {
