@@ -1,0 +1,21 @@
+# Demo/Test Dateien (nicht für Produktion)
+anmeldungen.json
+status.json
+server.js
+demo-checkout.html
+admin.html
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Lokale Konfiguration
+.claude/

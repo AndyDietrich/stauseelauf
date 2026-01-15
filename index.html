@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stauseelauf 2025 - TSV Bad Wörishofen</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="hero">
+        <div class="container">
+            <h1>Stauseelauf 2025</h1>
+            <p class="subtitle">TSV Bad Wörishofen - Leichtathletik</p>
+            <div class="event-info">
+                <div class="info-item">
+                    <span class="label">Datum</span>
+                    <span class="value">08. August 2025</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Start</span>
+                    <span class="value">18:00 Uhr</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Ort</span>
+                    <span class="value">Stausee Bad Wörishofen</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="info-section">
+            <h2>Die Strecken</h2>
+            <div class="routes">
+                <div class="route-card">
+                    <h3>5,3 km</h3>
+                    <p>1x um den Stausee</p>
+                    <p class="route-detail">Flache, naturnahe Route</p>
+                </div>
+                <div class="route-card">
+                    <h3>10,6 km</h3>
+                    <p>2x um den Stausee</p>
+                    <p class="route-detail">Flache, naturnahe Route</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2>Wichtige Infos</h2>
+            <ul class="info-list">
+                <li><strong>Startaufstellung:</strong> 17:50 Uhr</li>
+                <li><strong>Massenstart:</strong> 18:00 Uhr für alle Altersklassen</li>
+                <li><strong>Siegerehrung:</strong> ca. 19:30 Uhr vor Ort</li>
+                <li><strong>Im Preis enthalten:</strong> 0,5l Wasser, Kuchen, Urkunde</li>
+                <li><strong>Parkplätze:</strong> In Startnähe vorhanden</li>
+                <li><strong>Hinweis:</strong> Keine Duschmöglichkeiten vor Ort</li>
+            </ul>
+            <p class="location">
+                <strong>Adresse:</strong> Seglerheim am Bad Wörishofer Stausee<br>
+                Am Stausee 2, 86879 Wiedergeltingen
+            </p>
+        </section>
+
+        <section class="registration-section" id="anmeldung">
+            <h2>Online-Anmeldung</h2>
+            <p class="price-info">Teilnahmegebühr: <strong>13 EUR</strong></p>
+            <p class="deadline">Anmeldeschluss: 07.08.2025, 24:00 Uhr</p>
+
+            <form id="registration-form" class="registration-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Vorname *</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Nachname *</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-Mail *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birthDate">Geburtsdatum *</label>
+                        <input type="text" id="birthDate" name="birthDate" placeholder="TT.MM.JJJJ" pattern="\d{2}\.\d{2}\.\d{4}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Geschlecht *</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Bitte wählen</option>
+                            <option value="m">Männlich</option>
+                            <option value="w">Weiblich</option>
+                            <option value="d">Divers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="distance">Strecke *</label>
+                    <select id="distance" name="distance" required>
+                        <option value="">Bitte wählen</option>
+                        <option value="5.3km">5,3 km (1x um den See)</option>
+                        <option value="10.6km">10,6 km (2x um den See)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="club">Verein / Team (optional)</label>
+                    <input type="text" id="club" name="club">
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="privacy" name="privacy" required>
+                        Ich akzeptiere die <a href="#" target="_blank">Datenschutzerklärung</a> und stimme der Verarbeitung meiner Daten zu. *
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    Jetzt anmelden & bezahlen (13 EUR)
+                </button>
+
+                <p class="payment-note">
+                    Sichere Bezahlung über Stripe. Nach erfolgreicher Zahlung erhältst du eine Bestätigung.
+                </p>
+            </form>
+        </section>
+
+        <section class="info-section">
+            <h2>Nachmeldung vor Ort</h2>
+            <p>Nachmeldungen sind am Veranstaltungstag von 16:00 - 17:00 Uhr möglich.</p>
+            <p><strong>Nachmeldegebühr:</strong> 15 EUR (nur Barzahlung)</p>
+        </section>
+
+        <!-- Ergebnisse - nur sichtbar wenn veröffentlicht -->
+        <section class="info-section" id="ergebnisse-section" style="display: none;">
+            <h2>Ergebnisse</h2>
+            <div id="results-tabs" style="margin-bottom: 20px;">
+                <button class="tab-btn active" onclick="showResults('5.3km')">5,3 km</button>
+                <button class="tab-btn" onclick="showResults('10.6km')">10,6 km</button>
+            </div>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Name</th>
+                        <th>Verein</th>
+                        <th>Zeit</th>
+                        <th>Urkunde</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 TSV Bad Wörishofen - Leichtathletik</p>
+            <p>
+                <a href="https://www.tsv-bw.de" target="_blank">www.tsv-bw.de</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Sticky Anmelde-Button -->
+    <a href="#anmeldung" class="sticky-cta" id="sticky-cta">
+        Jetzt anmelden
+    </a>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

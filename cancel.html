@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlung abgebrochen - Stauseelauf 2025</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .cancel-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .cancel-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .cancel-card {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .cancel-icon {
+            width: 80px;
+            height: 80px;
+            background: #ff9800;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+        }
+        .cancel-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+        .cancel-card h1 {
+            color: #fd7e14;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        .cancel-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+        .retry-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 14px 35px;
+            background: #1a5f7a;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .retry-link:hover {
+            background: #155a70;
+        }
+        .help-text {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .help-text a {
+            color: #1a5f7a;
+        }
+    </style>
+</head>
+<body class="cancel-page">
+    <header class="hero" style="padding: 30px 20px;">
+        <div class="container">
+            <h1 style="font-size: 1.8rem; margin: 0;">Stauseelauf 2025</h1>
+            <p class="subtitle" style="margin: 5px 0 0 0;">TSV Bad Wörishofen</p>
+        </div>
+    </header>
+
+    <main class="cancel-content">
+        <div class="cancel-card">
+            <div class="cancel-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+            </div>
+            <h1>Zahlung abgebrochen</h1>
+            <p>
+                Die Zahlung wurde abgebrochen oder konnte nicht abgeschlossen werden.
+                Es wurde kein Geld abgebucht.
+            </p>
+            <p>
+                Du kannst es jederzeit erneut versuchen.
+            </p>
+
+            <a href="index.html#anmeldung" class="retry-link">Erneut anmelden</a>
+
+            <div class="help-text">
+                <p>
+                    Probleme bei der Anmeldung?<br>
+                    Kontaktiere uns unter <a href="mailto:leichtathletik@tsv-bw.de">leichtathletik@tsv-bw.de</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 TSV Bad Wörishofen - Leichtathletik</p>
+        </div>
+    </footer>
+</body>
+</html>
