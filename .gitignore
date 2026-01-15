@@ -1,9 +1,7 @@
-# Demo/Test Dateien (nicht für Produktion)
+# Lokale Test-Dateien
 anmeldungen.json
 status.json
 server.js
-demo-checkout.html
-admin.html
 
 # Node
 node_modules/

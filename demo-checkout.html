@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Checkout - Stauseelauf 2025</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .checkout-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .checkout-header {
+            background: #1a5f7a;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .checkout-header h1 { font-size: 1.3rem; margin-bottom: 5px; }
+        .demo-badge {
+            background: #ff9800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .checkout-body { padding: 25px; }
+        .order-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .order-summary h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .order-item { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .order-item .name { font-weight: 500; }
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .participant-info { margin-bottom: 25px; }
+        .participant-info h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .participant-info p { color: #333; line-height: 1.6; }
+        .card-form { margin-bottom: 20px; }
+        .card-form label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .card-form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+        }
+        .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .pay-button {
+            width: 100%;
+            padding: 15px;
+            background: #1a5f7a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pay-button:hover { background: #155a70; }
+        .cancel-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            text-decoration: none;
+        }
+        .demo-note {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #e65100;
+        }
+        .processing { text-align: center; padding: 40px; }
+        .processing .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #eee;
+            border-top: 4px solid #1a5f7a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1>Stauseelauf 2025</h1>
+            <p>TSV Bad Wörishofen</p>
+            <span class="demo-badge">DEMO CHECKOUT</span>
+        </div>
+
+        <div class="checkout-body" id="checkout-form">
+            <div class="demo-note">
+                Dies ist eine Demo-Zahlung. Es wird kein echtes Geld abgebucht.
+            </div>
+
+            <div class="order-summary">
+                <h3>Bestellung</h3>
+                <div class="order-item">
+                    <span class="name">Stauseelauf 2025 - <span id="summary-distance">5,3 km</span></span>
+                    <span>13,00 EUR</span>
+                </div>
+                <div class="order-total">
+                    <span>Gesamt</span>
+                    <span>13,00 EUR</span>
+                </div>
+            </div>
+
+            <div class="participant-info">
+                <h3>Teilnehmer</h3>
+                <p id="participant-details">Wird geladen...</p>
+            </div>
+
+            <div class="card-form">
+                <label>Kartennummer</label>
+                <input type="text" value="4242 4242 4242 4242" readonly>
+                <div class="card-row">
+                    <div>
+                        <label>Ablaufdatum</label>
+                        <input type="text" value="12/25" readonly>
+                    </div>
+                    <div>
+                        <label>CVC</label>
+                        <input type="text" value="123" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <button class="pay-button" id="pay-button">13,00 EUR bezahlen</button>
+            <a href="index.html" class="cancel-link">Abbrechen</a>
+        </div>
+
+        <div class="processing hidden" id="processing">
+            <div class="spinner"></div>
+            <p>Zahlung wird verarbeitet...</p>
+        </div>
+    </div>
+
+    <script>
+        // Teilnehmerdaten aus URL auslesen
+        const params = new URLSearchParams(window.location.search);
+
+        const participantData = {
+            firstName: params.get('firstName') || '',
+            lastName: params.get('lastName') || '',
+            email: params.get('email') || '',
+            birthDate: params.get('birthDate') || '',
+            gender: params.get('gender') || '',
+            distance: params.get('distance') || '5.3km',
+            club: params.get('club') || '-'
+        };
+
+        // Debug: Zeige was aus der URL gelesen wurde
+        console.log('URL:', window.location.search);
+        console.log('Daten:', participantData);
+
+        const genderText = { 'm': 'Männlich', 'w': 'Weiblich', 'd': 'Divers' };
+        const distanceText = participantData.distance.includes('10') ? '10,6 km' : '5,3 km';
+
+        document.getElementById('participant-details').innerHTML = `
+            <strong>${participantData.firstName} ${participantData.lastName}</strong><br>
+            ${participantData.email}<br>
+            Geburtsdatum: ${participantData.birthDate}<br>
+            Geschlecht: ${genderText[participantData.gender] || participantData.gender}<br>
+            Strecke: ${distanceText}<br>
+            ${participantData.club !== '-' ? 'Verein: ' + participantData.club : ''}
+        `;
+
+        document.getElementById('summary-distance').textContent = distanceText;
+
+        // Bezahlen Button
+        document.getElementById('pay-button').addEventListener('click', async function() {
+            const formEl = document.getElementById('checkout-form');
+            const processingEl = document.getElementById('processing');
+
+            formEl.classList.add('hidden');
+            processingEl.classList.remove('hidden');
+
+            // Daten an Server senden
+            const dataToSend = {
+                ...participantData,
+                paymentId: 'demo_' + Date.now(),
+                status: 'Bezahlt'
+            };
+
+            console.log('Sende Daten:', dataToSend);
+
+            try {
+                const response = await fetch('http://localhost:3000/api/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+                console.log('Server Response:', response.status);
+            } catch (e) {
+                console.log('Server nicht erreichbar, speichere lokal');
+                const registrations = JSON.parse(localStorage.getItem('stauseelauf_registrations') || '[]');
+                registrations.push({
+                    timestamp: new Date().toLocaleString('de-DE'),
+                    ...dataToSend
+                });
+                localStorage.setItem('stauseelauf_registrations', JSON.stringify(registrations));
+            }
+
+            setTimeout(() => {
+                window.location.href = 'success.html';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

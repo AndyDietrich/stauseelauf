@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Stauseelauf 2025</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header {
+            background: #1a5f7a;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.5rem; }
+        .stats { display: flex; gap: 20px; }
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value { font-size: 1.5rem; font-weight: bold; }
+        .stat-label { font-size: 0.8rem; opacity: 0.9; }
+        .toolbar {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .toolbar button:hover { background: #f5f5f5; }
+        .toolbar button.primary {
+            background: #1a5f7a;
+            color: white;
+            border-color: #1a5f7a;
+        }
+        .toolbar button.success {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .toolbar button.warning {
+            background: #ff9800;
+            color: white;
+            border-color: #ff9800;
+        }
+        .toolbar-spacer { flex: 1; }
+        .publish-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .publish-status.published {
+            background: #d4edda;
+            color: #155724;
+        }
+        .publish-status.unpublished {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .table-container {
+            background: white;
+            border-radius: 0 0 12px 12px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        tr:hover { background: #f8f9fa; }
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .distance-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        input.editable {
+            width: 70px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        input.editable:focus {
+            border-color: #1a5f7a;
+            outline: none;
+        }
+        input.zeit {
+            width: 80px;
+            font-family: monospace;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .msg {
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 6px;
+            display: none;
+        }
+        .msg.success { background: #d4edda; color: #155724; display: block; }
+        .msg.error { background: #f8d7da; color: #721c24; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Stauseelauf 2025 - Admin</h1>
+                <p style="opacity: 0.8; margin-top: 5px;">Anmeldungen & Ergebnisse</p>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="total-count">0</div>
+                    <div class="stat-label">Gesamt</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="short-count">0</div>
+                    <div class="stat-label">5,3 km</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="long-count">0</div>
+                    <div class="stat-label">10,6 km</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <button onclick="loadData()">Aktualisieren</button>
+            <button class="primary" onclick="saveAllData()">Speichern</button>
+            <button onclick="exportCSV()">CSV Export</button>
+            <div class="toolbar-spacer"></div>
+            <span class="publish-status unpublished" id="publish-status">Nicht veröffentlicht</span>
+            <button class="success" onclick="publishResults()" id="publish-btn">Ergebnisse veröffentlichen</button>
+            <button class="warning" onclick="unpublishResults()" id="unpublish-btn" style="display:none;">Veröffentlichung zurückziehen</button>
+        </div>
+
+        <div class="msg" id="msg"></div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Startnr.</th>
+                        <th>Zeit</th>
+                        <th>Vorname</th>
+                        <th>Nachname</th>
+                        <th>Geb.-Datum</th>
+                        <th>Geschlecht</th>
+                        <th>Strecke</th>
+                        <th>Verein</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <h2>Keine Anmeldungen</h2>
+                <p>Sobald Anmeldungen eingehen, erscheinen sie hier.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let currentData = [];
+        let resultsPublished = false;
+
+        async function loadData() {
+            try {
+                const res = await fetch(API_URL + '/api/registrations');
+                currentData = await res.json();
+
+                const statusRes = await fetch(API_URL + '/api/results/status');
+                const status = await statusRes.json();
+                resultsPublished = status.published;
+                updatePublishUI();
+            } catch (e) {
+                console.error('Fehler beim Laden:', e);
+            }
+            renderTable();
+            updateStats();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const emptyState = document.getElementById('empty-state');
+
+            if (currentData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            // Sortiere nach Zeit (falls vorhanden), dann nach Strecke
+            const sorted = [...currentData].sort((a, b) => {
+                const distA = (a.strecke || a.distance || '').includes('10') ? 1 : 0;
+                const distB = (b.strecke || b.distance || '').includes('10') ? 1 : 0;
+                if (distA !== distB) return distA - distB;
+
+                const zeitA = a.zeit || '99:99:99';
+                const zeitB = b.zeit || '99:99:99';
+                return zeitA.localeCompare(zeitB);
+            });
+
+            const genderMap = { 'm': 'M', 'w': 'W', 'd': 'D' };
+            let platz5k = 0, platz10k = 0;
+
+            tbody.innerHTML = sorted.map((row, i) => {
+                const dist = (row.strecke || row.distance || '');
+                const is10k = dist.includes('10');
+                const platz = is10k ? ++platz10k : ++platz5k;
+                const hasTime = row.zeit && row.zeit !== '';
+
+                return `
+                <tr data-index="${currentData.indexOf(row)}">
+                    <td>${hasTime ? platz : '-'}</td>
+                    <td><input type="text" class="editable" data-field="startnummer" value="${row.startnummer || ''}" placeholder="-"></td>
+                    <td><input type="text" class="editable zeit" data-field="zeit" value="${row.zeit || ''}" placeholder="00:00:00"></td>
+                    <td>${row.vorname || row.firstName || '-'}</td>
+                    <td>${row.nachname || row.lastName || '-'}</td>
+                    <td>${row.geburtsdatum || row.birthDate || '-'}</td>
+                    <td>${genderMap[row.geschlecht || row.gender] || '-'}</td>
+                    <td><span class="distance-badge">${is10k ? '10,6 km' : '5,3 km'}</span></td>
+                    <td>${row.verein || row.club || '-'}</td>
+                </tr>
+            `}).join('');
+
+            // Event Listener für Änderungen
+            tbody.querySelectorAll('input.editable').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const tr = e.target.closest('tr');
+                    const idx = parseInt(tr.dataset.index);
+                    const field = e.target.dataset.field;
+                    currentData[idx][field] = e.target.value;
+                });
+            });
+        }
+
+        function updateStats() {
+            const paid = currentData.filter(d => (d.zahlungsstatus || d.status) === 'Bezahlt');
+            const total = paid.length;
+            const short = paid.filter(d => !(d.strecke || d.distance || '').includes('10')).length;
+            const long = paid.filter(d => (d.strecke || d.distance || '').includes('10')).length;
+
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('short-count').textContent = short;
+            document.getElementById('long-count').textContent = long;
+        }
+
+        function updatePublishUI() {
+            const status = document.getElementById('publish-status');
+            const pubBtn = document.getElementById('publish-btn');
+            const unpubBtn = document.getElementById('unpublish-btn');
+
+            if (resultsPublished) {
+                status.textContent = 'Veröffentlicht';
+                status.className = 'publish-status published';
+                pubBtn.style.display = 'none';
+                unpubBtn.style.display = 'inline-block';
+            } else {
+                status.textContent = 'Nicht veröffentlicht';
+                status.className = 'publish-status unpublished';
+                pubBtn.style.display = 'inline-block';
+                unpubBtn.style.display = 'none';
+            }
+        }
+
+        async function saveAllData() {
+            try {
+                const res = await fetch(API_URL + '/api/registrations', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentData)
+                });
+                if (res.ok) {
+                    showMsg('Daten gespeichert!', 'success');
+                } else {
+                    showMsg('Fehler beim Speichern', 'error');
+                }
+            } catch (e) {
+                showMsg('Server nicht erreichbar', 'error');
+            }
+        }
+
+        async function publishResults() {
+            await saveAllData();
+            try {
+                const res = await fetch(API_URL + '/api/results/publish', { method: 'POST' });
+                if (res.ok) {
+                    resultsPublished = true;
+                    updatePublishUI();
+                    showMsg('Ergebnisse veröffentlicht!', 'success');
+                }
+            } catch (e) {
+                showMsg('Fehler beim Veröffentlichen', 'error');
+            }
+        }
+
+        async function unpublishResults() {
+            try {
+                const res = await fetch(API_URL + '/api/results/unpublish', { method: 'POST' });
+                if (res.ok) {
+                    resultsPublished = false;
+                    updatePublishUI();
+                    showMsg('Veröffentlichung zurückgezogen', 'success');
+                }
+            } catch (e) {
+                showMsg('Fehler', 'error');
+            }
+        }
+
+        function showMsg(text, type) {
+            const msg = document.getElementById('msg');
+            msg.textContent = text;
+            msg.className = 'msg ' + type;
+            setTimeout(() => msg.className = 'msg', 3000);
+        }
+
+        function exportCSV() {
+            if (currentData.length === 0) {
+                alert('Keine Daten');
+                return;
+            }
+            const headers = ['Startnummer', 'Zeit', 'Vorname', 'Nachname', 'Geburtsdatum', 'Geschlecht', 'Strecke', 'Verein'];
+            const rows = currentData.map(row => [
+                row.startnummer || '',
+                row.zeit || '',
+                row.vorname || row.firstName || '',
+                row.nachname || row.lastName || '',
+                row.geburtsdatum || row.birthDate || '',
+                row.geschlecht || row.gender || '',
+                row.strecke || row.distance || '',
+                row.verein || row.club || ''
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `stauseelauf_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

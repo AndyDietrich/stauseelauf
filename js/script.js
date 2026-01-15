@@ -2,18 +2,17 @@
 // KONFIGURATION
 // ============================================
 const CONFIG = {
-    // Demo-Modus: true = lokaler Test, false = Produktion mit Google Apps Script
-    DEMO_MODE: false,
+    // Demo-Modus: Verwendet LocalStorage statt echtem Backend
+    DEMO_MODE: true,
 
-    // URL des Google Apps Script Web-App
-    // Nach dem Setup in Google Apps Script hier eintragen
+    // URL des Google Apps Script Web-App (für Produktion)
     APPS_SCRIPT_URL: 'HIER_GOOGLE_APPS_SCRIPT_URL_EINTRAGEN',
 
-    // Lokaler Test-Server URL (nur für Entwicklung)
-    TEST_SERVER_URL: 'http://localhost:3000',
-
-    // Pfad zur Ergebnisse-Datei (für GitHub Pages)
-    RESULTS_JSON: 'results.json',
+    // LocalStorage Keys
+    STORAGE_KEYS: {
+        REGISTRATIONS: 'stauseelauf_registrations',
+        RESULTS_PUBLISHED: 'stauseelauf_published'
+    }
 };
 
 // ============================================
@@ -150,24 +149,11 @@ async function handleFormSubmit(e) {
 }
 
 // ============================================
-// DEMO-MODUS
+// DEMO-MODUS (LocalStorage)
 // ============================================
 async function handleDemoCheckout(formData) {
-    // Daten immer als URL-Parameter übergeben
+    // Daten als URL-Parameter für Checkout-Seite
     const params = new URLSearchParams(formData);
-
-    try {
-        // Versuche Session auf Server zu erstellen (für Tracking)
-        await fetch(CONFIG.TEST_SERVER_URL + '/api/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-    } catch (error) {
-        console.log('Server nicht erreichbar');
-    }
-
-    // Immer zur Checkout-Seite mit allen Daten weiterleiten
     window.location.href = 'demo-checkout.html?' + params.toString();
 }
 
@@ -291,22 +277,30 @@ let currentDistance = '5.3km';
 
 async function loadResults() {
     try {
-        let data;
-
         if (CONFIG.DEMO_MODE) {
-            // Demo: Vom lokalen Server laden
-            const res = await fetch(CONFIG.TEST_SERVER_URL + '/api/results');
-            data = await res.json();
-        } else {
-            // Produktion: Von statischer JSON-Datei laden
-            const res = await fetch(CONFIG.RESULTS_JSON);
-            data = await res.json();
-        }
+            // Demo: Von LocalStorage laden
+            const published = localStorage.getItem(CONFIG.STORAGE_KEYS.RESULTS_PUBLISHED) === 'true';
+            const registrations = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REGISTRATIONS) || '[]');
 
-        if (data.published && data.results && data.results.length > 0) {
-            allResults = data.results;
-            document.getElementById('ergebnisse-section').style.display = 'block';
-            showResults('5.3km');
+            if (published) {
+                // Nur Einträge mit Zeit anzeigen
+                allResults = registrations
+                    .filter(r => r.zeit && r.zeit !== '')
+                    .map(r => ({
+                        vorname: r.vorname || r.firstName,
+                        nachname: r.nachname || r.lastName,
+                        zeit: r.zeit,
+                        strecke: r.strecke || r.distance,
+                        verein: r.verein || r.club || '-'
+                    }));
+
+                if (allResults.length > 0) {
+                    document.getElementById('ergebnisse-section').style.display = 'block';
+                    showResults('5.3km');
+                }
+            }
+        } else {
+            // Produktion: Von Google Apps Script laden (TODO)
         }
     } catch (e) {
         console.log('Ergebnisse nicht verfügbar');
