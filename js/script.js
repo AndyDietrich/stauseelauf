@@ -1,5 +1,5 @@
 const CONFIG = {
-    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwJUhrzm1YXtHw6bQc-PdCPMXEDGwC1yHm6V_9XIuPQbqeMiCNRD0ZtklK0ycaFt_TB/exec'
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxrFOixTsDGVqE9PvsvV4wwjfBfknue7h8wlIzeVASlgNNY6AsOJVRe1u2vik81_nue/exec'
 };
 
 // ============================================
@@ -118,8 +118,12 @@ async function handleFormSubmit(e) {
         club: document.getElementById('club').value.trim() || '-',
     };
 
-    const params = new URLSearchParams(formData);
-    window.location.href = 'demo-checkout.html?' + params.toString();
+    // Redirect to Stripe Checkout via Apps Script
+    const params = new URLSearchParams({
+        action: 'createCheckout',
+        ...formData
+    });
+    window.location.href = CONFIG.APPS_SCRIPT_URL + '?' + params.toString();
 }
 
 // ============================================
