@@ -1,5 +1,5 @@
 const CONFIG = {
-    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzlhndVGfDYRaUnUm4cr8F199jhWyzCI-8Rau6NVqH0WiJj3uLcACuRV1VZ6jfmA1K9/exec'
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwN72APuLT2yVEGKMJSzguCTfUvqFEPpBO8EuUJFBjYu4k8DBvdPDBxKqRu1nZ6t4hm/exec'
 };
 
 // ============================================
