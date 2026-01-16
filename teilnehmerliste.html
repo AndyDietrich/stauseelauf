@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stauseelauf 2025 - TSV Bad Wörishofen</title>
+    <title>Teilnehmerliste - Stauseelauf 2025</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -15,9 +15,9 @@
             </a>
             <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
             <ul class="nav-menu" id="nav-menu">
-                <li><a href="index.html" class="active">Start</a></li>
+                <li><a href="index.html">Start</a></li>
                 <li><a href="registration.html">Anmeldung</a></li>
-                <li id="nav-teilnehmer" class="hidden"><a href="teilnehmerliste.html">Teilnehmerliste</a></li>
+                <li id="nav-teilnehmer"><a href="teilnehmerliste.html" class="active">Teilnehmerliste</a></li>
                 <li id="nav-ergebnisse" class="hidden"><a href="ergebnisse.html">Ergebnisse</a></li>
             </ul>
         </div>
@@ -28,23 +28,30 @@
             <img src="images/Stauseelauf004.jpg" alt="Stauseelauf - Läufer am Start">
         </div>
         <div class="hero-content">
-            <h1>Stauseelauf</h1>
-            <p class="subtitle">8. August 2025<br>am Bad Wörishofer Stausee: Am Stausee 2, 86879 Wiedergeltingen</p>
+            <h1>Teilnehmerliste</h1>
+            <p class="subtitle">Stauseelauf 2025 - 8. August 2025</p>
         </div>
     </header>
 
     <main class="container">
-        <div class="event-details-card">
-            <h2>Flache, landschaftlich schöne Strecke um den Stausee</h2>
-            <ul class="details-list">
-                <li><strong>5,3 km</strong> - 1 Runde</li>
-                <li><strong>10,6 km</strong> - 2 Runden</li>
-                <li>Organisationsbeitrag: <strong>13 EUR</strong></li>
-                <li>inkl. Wasser, Kuchen und Siegerehrung mit Urkunde</li>
-                <li>Start: <strong>18:00 Uhr</strong> im Massenstart</li>
-            </ul>
-            <a href="registration.html" class="cta-button">Jetzt anmelden</a>
-        </div>
+        <section class="info-section" id="teilnehmer-section">
+            <div id="results-tabs" style="margin-bottom: 20px;">
+                <button class="tab-btn active" onclick="switchDistance('5.3km')">5,3 km</button>
+                <button class="tab-btn" onclick="switchDistance('10.6km')">10,6 km</button>
+            </div>
+            <p id="participant-count" style="margin-bottom: 15px; color: #666;"></p>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Verein</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <tr><td colspan="2" style="text-align: center; padding: 40px; color: #666;">Laden...</td></tr>
+                </tbody>
+            </table>
+        </section>
     </main>
 
     <footer>

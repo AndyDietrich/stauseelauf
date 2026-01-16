@@ -6,36 +6,60 @@ const CONFIG = {
 // INITIALISIERUNG
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Check publish status for navigation on all pages
+    checkPublishStatus();
+
+    // Registration form setup
     const form = document.getElementById('registration-form');
     if (form) {
-        const stickyCta = document.getElementById('sticky-cta');
-        setupStickyButton(stickyCta);
         setupBirthDateInput();
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
     }
 
+    // Teilnehmerliste page
+    if (document.getElementById('teilnehmer-section')) {
+        loadParticipants();
+    }
+
+    // Ergebnisse page
     if (document.getElementById('ergebnisse-section')) {
         loadResults();
     }
 });
 
 // ============================================
-// STICKY BUTTON
+// NAVIGATION
 // ============================================
-function setupStickyButton(stickyCta) {
-    const registrationSection = document.getElementById('anmeldung');
-    if (!stickyCta || !registrationSection) return;
-
-    function checkVisibility() {
-        const rect = registrationSection.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        stickyCta.classList.toggle('hidden', isVisible);
+function toggleNav() {
+    const navMenu = document.getElementById('nav-menu');
+    if (navMenu) {
+        navMenu.classList.toggle('open');
     }
+}
 
-    window.addEventListener('scroll', checkVisibility);
-    window.addEventListener('resize', checkVisibility);
-    checkVisibility();
+async function checkPublishStatus() {
+    try {
+        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
+        const data = await response.json();
+        const status = data.status || 'FALSE';
+
+        const navTeilnehmer = document.getElementById('nav-teilnehmer');
+        const navErgebnisse = document.getElementById('nav-ergebnisse');
+
+        if (status === 'TEILNEHMERLISTE') {
+            if (navTeilnehmer) navTeilnehmer.classList.remove('hidden');
+            if (navErgebnisse) navErgebnisse.classList.add('hidden');
+        } else if (status === 'ERGEBNISLISTE') {
+            if (navTeilnehmer) navTeilnehmer.classList.remove('hidden');
+            if (navErgebnisse) navErgebnisse.classList.remove('hidden');
+        } else {
+            if (navTeilnehmer) navTeilnehmer.classList.add('hidden');
+            if (navErgebnisse) navErgebnisse.classList.add('hidden');
+        }
+    } catch (e) {
+        console.error('Error checking publish status:', e);
+    }
 }
 
 // ============================================
@@ -179,65 +203,31 @@ function checkUrlParams() {
 }
 
 // ============================================
-// ERGEBNISSE
+// TEILNEHMERLISTE
 // ============================================
-let allResults = [];
+let allParticipants = [];
 let currentDistance = '5.3km';
-let currentMode = 'FALSE';
 
-async function loadResults() {
+async function loadParticipants() {
     try {
         const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
         const data = await response.json();
 
-        currentMode = data.status || 'FALSE';
-        if (currentMode === 'FALSE') {
-            console.log('Nothing published.');
+        const status = data.status || 'FALSE';
+        if (status === 'FALSE') {
+            showNoDataMessage('Die Teilnehmerliste wurde noch nicht veröffentlicht.');
             return;
         }
 
-        allResults = data.data || [];
-
-        // Filter based on mode
-        if (currentMode === 'ERGEBNISLISTE') {
-            allResults = allResults.filter(r => r.Zeit && r.Zeit !== '');
-        }
-
-        if (allResults.length > 0) {
-            const section = document.getElementById('ergebnisse-section');
-            const heading = document.getElementById('ergebnisse-heading');
-
-            section.style.display = 'block';
-
-            if (currentMode === 'TEILNEHMERLISTE') {
-                heading.textContent = 'Teilnehmerliste';
-                updateTableHeaders(false);
-                showParticipants('5.3km');
-            } else {
-                heading.textContent = 'Ergebnisse';
-                updateTableHeaders(true);
-                showResults('5.3km');
-            }
+        allParticipants = data.data || [];
+        if (allParticipants.length > 0) {
+            showParticipants('5.3km');
+        } else {
+            showNoDataMessage('Noch keine Teilnehmer angemeldet.');
         }
     } catch (e) {
-        console.error('Error loading data:', e);
-    }
-}
-
-function updateTableHeaders(showResults) {
-    const thead = document.querySelector('#results-table thead tr');
-    if (showResults) {
-        thead.innerHTML = '<th>Platz</th><th>Name</th><th>Verein</th><th>Zeit</th><th>Urkunde</th>';
-    } else {
-        thead.innerHTML = '<th>Name</th><th>Verein</th>';
-    }
-}
-
-function switchDistance(distance) {
-    if (currentMode === 'TEILNEHMERLISTE') {
-        showParticipants(distance);
-    } else {
-        showResults(distance);
+        console.error('Error loading participants:', e);
+        showNoDataMessage('Fehler beim Laden der Daten.');
     }
 }
 
@@ -247,17 +237,55 @@ function showParticipants(distance) {
         btn.classList.toggle('active', btn.textContent.includes(distance.replace('km', '')));
     });
 
-    const filtered = allResults
+    const filtered = allParticipants
         .filter(r => r.Strecke === distance)
         .sort((a, b) => (a.Nachname || '').localeCompare(b.Nachname || ''));
 
+    const countEl = document.getElementById('participant-count');
+    if (countEl) {
+        countEl.textContent = `${filtered.length} Teilnehmer`;
+    }
+
     const tbody = document.getElementById('results-body');
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 40px; color: #666;">Keine Teilnehmer für diese Strecke.</td></tr>';
+        return;
+    }
+
     tbody.innerHTML = filtered.map(r => `
         <tr>
             <td>${r.Vorname} ${r.Nachname}</td>
             <td>${r.Verein || '-'}</td>
         </tr>
     `).join('');
+}
+
+// ============================================
+// ERGEBNISSE
+// ============================================
+let allResults = [];
+
+async function loadResults() {
+    try {
+        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
+        const data = await response.json();
+
+        const status = data.status || 'FALSE';
+        if (status !== 'ERGEBNISLISTE') {
+            showNoDataMessage('Die Ergebnisse wurden noch nicht veröffentlicht.');
+            return;
+        }
+
+        allResults = (data.data || []).filter(r => r.Zeit && r.Zeit !== '');
+        if (allResults.length > 0) {
+            showResults('5.3km');
+        } else {
+            showNoDataMessage('Noch keine Ergebnisse vorhanden.');
+        }
+    } catch (e) {
+        console.error('Error loading results:', e);
+        showNoDataMessage('Fehler beim Laden der Daten.');
+    }
 }
 
 function showResults(distance) {
@@ -270,7 +298,17 @@ function showResults(distance) {
         .filter(r => r.Strecke === distance)
         .sort((a, b) => (a.Zeit || '99:99:99').localeCompare(b.Zeit || '99:99:99'));
 
+    const countEl = document.getElementById('participant-count');
+    if (countEl) {
+        countEl.textContent = `${filtered.length} Ergebnisse`;
+    }
+
     const tbody = document.getElementById('results-body');
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Keine Ergebnisse für diese Strecke.</td></tr>';
+        return;
+    }
+
     tbody.innerHTML = filtered.map((r, i) => `
         <tr>
             <td>${i + 1}</td>
@@ -282,11 +320,27 @@ function showResults(distance) {
     `).join('');
 }
 
+function switchDistance(distance) {
+    // Check which page we're on
+    if (document.getElementById('teilnehmer-section')) {
+        showParticipants(distance);
+    } else if (document.getElementById('ergebnisse-section')) {
+        showResults(distance);
+    }
+}
+
+function showNoDataMessage(message) {
+    const tbody = document.getElementById('results-body');
+    if (tbody) {
+        const colspan = document.getElementById('ergebnisse-section') ? 5 : 2;
+        tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; padding: 40px; color: #666;">${message}</td></tr>`;
+    }
+}
+
 // ============================================
 // URKUNDEN PDF GENERIERUNG
 // ============================================
 function generateCertificate(platz, vorname, nachname, zeit, strecke, verein) {
-    // ... (rest of the function is unchanged)
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 1131; // A4 Verhältnis
