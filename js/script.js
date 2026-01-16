@@ -1,5 +1,5 @@
 const CONFIG = {
-    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxNx21O0XHw-aXXtFswc_jK9C2qwMeQFmR9VYCqOXH3xz6ShvhVQ_8tzqjhCFcapa6J/exec'
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzlhndVGfDYRaUnUm4cr8F199jhWyzCI-8Rau6NVqH0WiJj3uLcACuRV1VZ6jfmA1K9/exec'
 };
 
 // ============================================
@@ -118,12 +118,31 @@ async function handleFormSubmit(e) {
         club: document.getElementById('club').value.trim() || '-',
     };
 
-    // Redirect to Stripe Checkout via Apps Script
-    const params = new URLSearchParams({
-        action: 'createCheckout',
-        ...formData
-    });
-    window.location.href = CONFIG.APPS_SCRIPT_URL + '?' + params.toString();
+    try {
+        // Request Stripe Checkout URL from Apps Script
+        const params = new URLSearchParams({
+            action: 'createCheckout',
+            ...formData
+        });
+
+        const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?' + params.toString());
+        const result = await response.json();
+
+        if (result.checkoutUrl) {
+            // Redirect to Stripe Checkout
+            window.location.href = result.checkoutUrl;
+        } else if (result.error) {
+            setLoading(false);
+            showError('Fehler: ' + result.error);
+        } else {
+            setLoading(false);
+            showError('Ein unbekannter Fehler ist aufgetreten.');
+        }
+    } catch (error) {
+        setLoading(false);
+        showError('Verbindungsfehler. Bitte versuche es erneut.');
+        console.error('Checkout error:', error);
+    }
 }
 
 // ============================================
