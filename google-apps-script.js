@@ -137,7 +137,7 @@ function handleStatusRequest() {
 function handleCreateCheckout(params) {
   // Validate required fields
   if (!params.firstName || !params.lastName || !params.email) {
-    return redirectTo(CANCEL_URL + '&error=missing_fields');
+    return jsonResponse({ error: 'missing_fields' });
   }
 
   const participant = {
@@ -152,10 +152,10 @@ function handleCreateCheckout(params) {
 
   try {
     const checkoutUrl = createStripeCheckoutSession(participant);
-    return redirectTo(checkoutUrl);
+    return jsonResponse({ checkoutUrl: checkoutUrl });
   } catch (error) {
     Logger.log('Stripe error: ' + error.message);
-    return redirectTo(CANCEL_URL + '&error=stripe_error');
+    return jsonResponse({ error: error.message });
   }
 }
 
@@ -167,10 +167,10 @@ function createStripeCheckoutSession(participant) {
   const payload = {
     'payment_method_types[]': 'card',
     'line_items[0][price_data][currency]': 'eur',
-    'line_items[0][price_data][unit_amount]': PRICE_CENTS,
+    'line_items[0][price_data][unit_amount]': String(PRICE_CENTS),
     'line_items[0][price_data][product_data][name]': 'Stauseelauf 2025 - ' + distanceLabel,
     'line_items[0][price_data][product_data][description]': participant.firstName + ' ' + participant.lastName,
-    'line_items[0][quantity]': 1,
+    'line_items[0][quantity]': '1',
     'mode': 'payment',
     'success_url': SUCCESS_URL,
     'cancel_url': CANCEL_URL,
