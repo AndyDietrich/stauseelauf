@@ -123,6 +123,11 @@ function handleDataRequest() {
     obj.Alter = age;
     obj.Altersklasse = getAgeGroup(age, obj.Geschlecht);
 
+    // Format Zeit if it's a Date object
+    if (obj.Zeit) {
+      obj.Zeit = formatTime(obj.Zeit);
+    }
+
     return obj;
   });
 
@@ -269,10 +274,18 @@ function redirectTo(url) {
 
 /**
  * Parse German date format (DD.MM.YYYY) to Date object
+ * Also handles Date objects from Google Sheets
  */
-function parseGermanDate(dateStr) {
-  if (!dateStr) return null;
-  const str = String(dateStr);
+function parseGermanDate(dateValue) {
+  if (!dateValue) return null;
+
+  // If it's already a Date object (from Google Sheets)
+  if (dateValue instanceof Date) {
+    return dateValue;
+  }
+
+  // If it's a string in DD.MM.YYYY format
+  const str = String(dateValue);
   const parts = str.split('.');
   if (parts.length !== 3) return null;
   const day = parseInt(parts[0], 10);
@@ -280,6 +293,24 @@ function parseGermanDate(dateStr) {
   const year = parseInt(parts[2], 10);
   if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
   return new Date(year, month - 1, day);
+}
+
+/**
+ * Format time value for display (handles Date objects from Sheets)
+ */
+function formatTime(timeValue) {
+  if (!timeValue) return '';
+
+  // If it's a Date object, extract time
+  if (timeValue instanceof Date) {
+    const hours = String(timeValue.getHours()).padStart(2, '0');
+    const minutes = String(timeValue.getMinutes()).padStart(2, '0');
+    const seconds = String(timeValue.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+  }
+
+  // If it's already a string, return as-is
+  return String(timeValue);
 }
 
 /**
@@ -372,21 +403,29 @@ function updatePreviewSheet() {
     .filter(row => row[colIndex.zeit] && String(row[colIndex.zeit]).trim() !== '')
     .map(row => {
       const age = calculateAgeOnRaceDay(row[colIndex.geburtsdatum]);
+      const zeitFormatted = formatTime(row[colIndex.zeit]);
       return {
         vorname: row[colIndex.vorname] || '',
         nachname: row[colIndex.nachname] || '',
         verein: row[colIndex.verein] || '-',
         geschlecht: row[colIndex.geschlecht] || '',
         altersklasse: getAgeGroup(age, row[colIndex.geschlecht]),
-        zeit: row[colIndex.zeit],
+        zeit: zeitFormatted,
+        zeitRaw: row[colIndex.zeit], // Keep raw for sorting
         strecke: row[colIndex.strecke] || ''
       };
     });
 
-  // Sort by distance, then by time
+  // Sort by distance, then by time (use zeitRaw for proper sorting)
   participants.sort((a, b) => {
     if (a.strecke !== b.strecke) {
       return String(a.strecke).localeCompare(String(b.strecke));
+    }
+    // Compare raw time values (works for both Date objects and strings)
+    const timeA = a.zeitRaw instanceof Date ? a.zeitRaw.getTime() : String(a.zeit);
+    const timeB = b.zeitRaw instanceof Date ? b.zeitRaw.getTime() : String(b.zeit);
+    if (typeof timeA === 'number' && typeof timeB === 'number') {
+      return timeA - timeB;
     }
     return String(a.zeit || '99:99:99').localeCompare(String(b.zeit || '99:99:99'));
   });
