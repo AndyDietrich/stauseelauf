@@ -1,40 +1,10 @@
-// ============================================
-// GOOGLE APPS SCRIPT - Stauseelauf 2025
-// With Stripe Checkout Integration
-// ============================================
-//
-// SETUP INSTRUCTIONS:
-// 1. Go to https://script.google.com and create a new project
-// 2. Paste this entire code
-// 3. Click Deploy → New deployment
-// 4. Select "Web app" as type
-// 5. Set "Execute as" to "Me"
-// 6. Set "Who has access" to "Anyone"
-// 7. Click Deploy and copy the Web App URL
-// 8. Update CONFIG.APPS_SCRIPT_URL in js/script.js with this URL
-//
-// FOR STRIPE WEBHOOKS:
-// 1. Go to Stripe Dashboard → Developers → Webhooks
-// 2. Add endpoint with your Apps Script URL
-// 3. Select event: checkout.session.completed
-// 4. Copy the Signing Secret to STRIPE_WEBHOOK_SECRET below
-//
-// IMPORTANT: After updating this code, you must create a NEW deployment
-// (Deploy → New deployment) to apply changes!
-//
-// ============================================
-
-// ============================================
-// CONFIGURATION
-// ============================================
-
 const SPREADSHEET_ID = '1aRfbY4shiAEZWpvK6JPkQsR4rbn_rbyhLysrpwH01UM';
 const SHEET_NAME = 'Tabelle1';
 const PUBLISH_CELL = 'N1';
 
 // Stripe Configuration
-// IMPORTANT: Replace with your actual Stripe Secret Key when deploying to Google Apps Script
-const STRIPE_SECRET_KEY = 'sk_test_YOUR_STRIPE_SECRET_KEY_HERE';
+const STRIPE_SECRET_KEY =
+'';
 const STRIPE_WEBHOOK_SECRET = ''; // Optional: Add webhook signing secret for production
 
 // Website URLs
@@ -86,15 +56,46 @@ function doPost(e) {
 
     // Handle Stripe webhook event
     if (event.type === 'checkout.session.completed') {
-      handleCheckoutCompleted(event.data.object);
+      const session = event.data.object;
+
+      // Check for duplicate using payment_intent ID
+      if (isDuplicatePayment(session.payment_intent)) {
+        Logger.log('Duplicate webhook ignored: ' + session.payment_intent);
+        return ContentService
+          .createTextOutput(JSON.stringify({ received: true, duplicate: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      handleCheckoutCompleted(session);
     }
 
-    return jsonResponse({ received: true });
+    // Return plain text response to avoid redirect issues
+    return ContentService
+      .createTextOutput(JSON.stringify({ received: true }))
+      .setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
     Logger.log('Error in doPost: ' + error.message);
-    return jsonResponse({ error: error.message });
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Check if this payment has already been processed
+function isDuplicatePayment(paymentIntentId) {
+  if (!paymentIntentId) return false;
+
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+
+  // Column J (index 9) contains the Stripe Payment ID
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][9] === paymentIntentId) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // ============================================
