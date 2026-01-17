@@ -39,6 +39,14 @@
                 <button class="tab-btn active" onclick="switchDistance('5.3km')">5,3 km</button>
                 <button class="tab-btn" onclick="switchDistance('10.6km')">10,6 km</button>
             </div>
+
+            <div id="filter-row" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label for="agegroup-select" style="font-weight: 500; color: #666;">Altersklasse:</label>
+                <select id="agegroup-select" onchange="filterByAgeGroup(this.value)" class="agegroup-dropdown">
+                    <option value="Gesamt">Gesamt (alle)</option>
+                </select>
+            </div>
+
             <p id="participant-count" style="margin-bottom: 15px; color: #666;"></p>
             <table id="results-table">
                 <thead>
@@ -46,12 +54,13 @@
                         <th>Platz</th>
                         <th>Name</th>
                         <th>Verein</th>
+                        <th>AK</th>
                         <th>Zeit</th>
                         <th>Urkunde</th>
                     </tr>
                 </thead>
                 <tbody id="results-body">
-                    <tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Laden...</td></tr>
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">Laden...</td></tr>
                 </tbody>
             </table>
         </section>

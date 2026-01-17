@@ -625,3 +625,39 @@ footer p {
 .nav-menu li.hidden {
     display: none;
 }
+
+/* Age Group Filter Dropdown */
+.agegroup-dropdown {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    min-width: 180px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.agegroup-dropdown:hover {
+    border-color: var(--secondary-color);
+}
+
+.agegroup-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#filter-row label {
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    #filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .agegroup-dropdown {
+        width: 100%;
+    }
+}

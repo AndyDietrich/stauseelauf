@@ -14,6 +14,10 @@ const CANCEL_URL = 'https://andydietrich.github.io/stauseelauf/registration.html
 // Price in cents (13 EUR = 1300 cents)
 const PRICE_CENTS = 1300;
 
+// Race Day for age calculation
+const RACE_DATE = new Date(2025, 7, 8); // August 8, 2025 (month is 0-indexed)
+const PREVIEW_SHEET_NAME = 'Ergebnis-Vorschau';
+
 // ============================================
 // GET REQUEST HANDLER
 // ============================================
@@ -113,6 +117,12 @@ function handleDataRequest() {
     headers.forEach((header, index) => {
       obj[header] = row[index];
     });
+
+    // Calculate and add age group data
+    const age = calculateAgeOnRaceDay(obj.Geburtsdatum);
+    obj.Alter = age;
+    obj.Altersklasse = getAgeGroup(age, obj.Geschlecht);
+
     return obj;
   });
 
@@ -251,6 +261,205 @@ function redirectTo(url) {
   return HtmlService.createHtmlOutput(
     '<script>window.top.location.href = "' + url + '";</script>'
   );
+}
+
+// ============================================
+// AGE GROUP CALCULATION
+// ============================================
+
+/**
+ * Parse German date format (DD.MM.YYYY) to Date object
+ */
+function parseGermanDate(dateStr) {
+  if (!dateStr) return null;
+  const str = String(dateStr);
+  const parts = str.split('.');
+  if (parts.length !== 3) return null;
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const year = parseInt(parts[2], 10);
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * Calculate age on race day
+ */
+function calculateAgeOnRaceDay(birthDateStr) {
+  const birthDate = parseGermanDate(birthDateStr);
+  if (!birthDate) return null;
+
+  let age = RACE_DATE.getFullYear() - birthDate.getFullYear();
+  const monthDiff = RACE_DATE.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && RACE_DATE.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age;
+}
+
+/**
+ * Determine age group category based on age and gender
+ * Returns format like "M40", "WU20", "MHK"
+ */
+function getAgeGroup(age, gender) {
+  if (age === null) return '';
+
+  const prefix = (gender === 'w' || gender === 'W') ? 'W' : 'M';
+
+  if (age < 20) return prefix + 'U20';
+  if (age < 23) return prefix + 'U23';
+  if (age < 30) return prefix + 'HK';
+  if (age < 35) return prefix + '30';
+  if (age < 40) return prefix + '35';
+  if (age < 45) return prefix + '40';
+  if (age < 50) return prefix + '45';
+  if (age < 55) return prefix + '50';
+  if (age < 60) return prefix + '55';
+  if (age < 65) return prefix + '60';
+  if (age < 70) return prefix + '65';
+  if (age < 75) return prefix + '70';
+  if (age < 80) return prefix + '75';
+  return prefix + '80';
+}
+
+// ============================================
+// PREVIEW SHEET FUNCTIONS
+// ============================================
+
+/**
+ * Create or update the Ergebnis-Vorschau sheet
+ * Call this manually or set up a trigger
+ */
+function updatePreviewSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sourceSheet = ss.getSheetByName(SHEET_NAME);
+
+  // Get or create preview sheet
+  let previewSheet = ss.getSheetByName(PREVIEW_SHEET_NAME);
+  if (!previewSheet) {
+    previewSheet = ss.insertSheet(PREVIEW_SHEET_NAME);
+  }
+
+  // Clear existing content
+  previewSheet.clear();
+
+  // Get source data
+  const data = sourceSheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+
+  // Find column indices
+  const colIndex = {
+    vorname: headers.indexOf('Vorname'),
+    nachname: headers.indexOf('Nachname'),
+    verein: headers.indexOf('Verein'),
+    geburtsdatum: headers.indexOf('Geburtsdatum'),
+    geschlecht: headers.indexOf('Geschlecht'),
+    strecke: headers.indexOf('Strecke'),
+    zeit: headers.indexOf('Zeit')
+  };
+
+  // Check if Zeit column exists
+  if (colIndex.zeit === -1) {
+    previewSheet.getRange(1, 1).setValue('Hinweis: Spalte "Zeit" fehlt in ' + SHEET_NAME);
+    return;
+  }
+
+  // Process participants with times
+  const participants = rows
+    .filter(row => row[colIndex.zeit] && String(row[colIndex.zeit]).trim() !== '')
+    .map(row => {
+      const age = calculateAgeOnRaceDay(row[colIndex.geburtsdatum]);
+      return {
+        vorname: row[colIndex.vorname] || '',
+        nachname: row[colIndex.nachname] || '',
+        verein: row[colIndex.verein] || '-',
+        geschlecht: row[colIndex.geschlecht] || '',
+        altersklasse: getAgeGroup(age, row[colIndex.geschlecht]),
+        zeit: row[colIndex.zeit],
+        strecke: row[colIndex.strecke] || ''
+      };
+    });
+
+  // Sort by distance, then by time
+  participants.sort((a, b) => {
+    if (a.strecke !== b.strecke) {
+      return String(a.strecke).localeCompare(String(b.strecke));
+    }
+    return String(a.zeit || '99:99:99').localeCompare(String(b.zeit || '99:99:99'));
+  });
+
+  // Calculate rankings
+  const results = [];
+  const distances = ['5.3km', '10.6km'];
+
+  distances.forEach(distance => {
+    const distanceParticipants = participants.filter(p => p.strecke === distance);
+    const akRankings = {};
+
+    distanceParticipants.forEach((p, index) => {
+      const ak = p.altersklasse || 'Unbekannt';
+      if (!akRankings[ak]) {
+        akRankings[ak] = 0;
+      }
+      akRankings[ak]++;
+
+      results.push({
+        ...p,
+        platzGesamt: index + 1,
+        platzAK: akRankings[ak]
+      });
+    });
+  });
+
+  // Write headers
+  previewSheet.getRange(1, 1, 1, 7).setValues([[
+    'Platz', 'Platz AK', 'Name', 'Verein', 'Altersklasse', 'Zeit', 'Strecke'
+  ]]);
+
+  // Style headers
+  const headerRange = previewSheet.getRange(1, 1, 1, 7);
+  headerRange.setFontWeight('bold');
+  headerRange.setBackground('#e0e0e0');
+
+  // Write data
+  if (results.length > 0) {
+    const outputData = results.map(r => [
+      r.platzGesamt,
+      r.platzAK,
+      r.vorname + ' ' + r.nachname,
+      r.verein,
+      r.altersklasse,
+      r.zeit,
+      r.strecke
+    ]);
+    previewSheet.getRange(2, 1, outputData.length, 7).setValues(outputData);
+  }
+
+  // Auto-resize columns
+  for (let i = 1; i <= 7; i++) {
+    previewSheet.autoResizeColumn(i);
+  }
+
+  Logger.log('Preview sheet updated with ' + results.length + ' results');
+}
+
+/**
+ * Trigger function: Auto-update preview when main sheet is edited
+ * Set up via: Edit > Current project's triggers > Add trigger
+ * Choose: onSheetEdit, From spreadsheet, On edit
+ */
+function onSheetEdit(e) {
+  try {
+    const sheet = e.source.getActiveSheet();
+    if (sheet.getName() === SHEET_NAME) {
+      updatePreviewSheet();
+    }
+  } catch (error) {
+    Logger.log('Error in onSheetEdit: ' + error.message);
+  }
 }
 
 // ============================================

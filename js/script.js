@@ -287,6 +287,42 @@ function showParticipants(distance) {
 // ERGEBNISSE
 // ============================================
 let allResults = [];
+let currentAgeGroup = 'Gesamt';
+
+// Age group options for dropdown (including M/W for all men/women)
+const AGE_GROUP_OPTIONS = [
+    { value: 'Gesamt', label: 'Gesamt (alle)' },
+    { value: 'M', label: 'Männer (alle)' },
+    { value: 'W', label: 'Frauen (alle)' },
+    { value: 'MU20', label: 'M U20' },
+    { value: 'MU23', label: 'M U23' },
+    { value: 'MHK', label: 'M Hauptklasse' },
+    { value: 'M30', label: 'M30' },
+    { value: 'M35', label: 'M35' },
+    { value: 'M40', label: 'M40' },
+    { value: 'M45', label: 'M45' },
+    { value: 'M50', label: 'M50' },
+    { value: 'M55', label: 'M55' },
+    { value: 'M60', label: 'M60' },
+    { value: 'M65', label: 'M65' },
+    { value: 'M70', label: 'M70' },
+    { value: 'M75', label: 'M75' },
+    { value: 'M80', label: 'M80+' },
+    { value: 'WU20', label: 'W U20' },
+    { value: 'WU23', label: 'W U23' },
+    { value: 'WHK', label: 'W Hauptklasse' },
+    { value: 'W30', label: 'W30' },
+    { value: 'W35', label: 'W35' },
+    { value: 'W40', label: 'W40' },
+    { value: 'W45', label: 'W45' },
+    { value: 'W50', label: 'W50' },
+    { value: 'W55', label: 'W55' },
+    { value: 'W60', label: 'W60' },
+    { value: 'W65', label: 'W65' },
+    { value: 'W70', label: 'W70' },
+    { value: 'W75', label: 'W75' },
+    { value: 'W80', label: 'W80+' }
+];
 
 async function loadResults() {
     try {
@@ -301,6 +337,7 @@ async function loadResults() {
 
         allResults = (data.data || []).filter(r => r.Zeit && r.Zeit !== '');
         if (allResults.length > 0) {
+            populateAgeGroupDropdown();
             showResults('5.3km');
         } else {
             showNoDataMessage('Noch keine Ergebnisse vorhanden.');
@@ -311,36 +348,144 @@ async function loadResults() {
     }
 }
 
-function showResults(distance) {
+/**
+ * Populate age group dropdown with available categories
+ */
+function populateAgeGroupDropdown() {
+    const dropdown = document.getElementById('agegroup-select');
+    if (!dropdown) return;
+
+    // Get unique age groups from current results
+    const availableGroups = new Set();
+    let hasMale = false;
+    let hasFemale = false;
+
+    allResults.forEach(r => {
+        if (r.Altersklasse) {
+            availableGroups.add(r.Altersklasse);
+            if (r.Altersklasse.startsWith('M')) hasMale = true;
+            if (r.Altersklasse.startsWith('W')) hasFemale = true;
+        }
+    });
+
+    // Clear and rebuild options
+    dropdown.innerHTML = '<option value="Gesamt">Gesamt (alle)</option>';
+
+    // Add M/W options if applicable
+    if (hasMale) {
+        dropdown.innerHTML += '<option value="M">Männer (alle)</option>';
+    }
+    if (hasFemale) {
+        dropdown.innerHTML += '<option value="W">Frauen (alle)</option>';
+    }
+
+    // Add specific age group categories
+    AGE_GROUP_OPTIONS.forEach(opt => {
+        if (opt.value !== 'Gesamt' && opt.value !== 'M' && opt.value !== 'W' && availableGroups.has(opt.value)) {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            dropdown.appendChild(option);
+        }
+    });
+}
+
+/**
+ * Handle age group dropdown change
+ */
+function filterByAgeGroup(ageGroup) {
+    currentAgeGroup = ageGroup;
+    showResults(currentDistance, ageGroup);
+}
+
+function showResults(distance, ageGroup = null) {
     currentDistance = distance;
+    if (ageGroup !== null) {
+        currentAgeGroup = ageGroup;
+    }
+
+    // Update distance tab styles
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.textContent.includes(distance.replace('km', '')));
     });
 
-    const filtered = allResults
-        .filter(r => r.Strecke === distance)
-        .sort((a, b) => (a.Zeit || '99:99:99').localeCompare(b.Zeit || '99:99:99'));
+    // Filter by distance first
+    let filtered = allResults.filter(r => r.Strecke === distance);
 
+    // Sort by time
+    filtered.sort((a, b) => (a.Zeit || '99:99:99').localeCompare(b.Zeit || '99:99:99'));
+
+    // Calculate overall ranking (before age group filter)
+    filtered.forEach((r, i) => {
+        r.platzGesamt = i + 1;
+    });
+
+    // Calculate age group rankings
+    const akRankings = {};
+    filtered.forEach(r => {
+        const ak = r.Altersklasse || 'Unbekannt';
+        if (!akRankings[ak]) {
+            akRankings[ak] = 0;
+        }
+        akRankings[ak]++;
+        r.platzAK = akRankings[ak];
+    });
+
+    // Apply age group filter if not "Gesamt"
+    if (currentAgeGroup !== 'Gesamt') {
+        if (currentAgeGroup === 'M') {
+            // All men
+            filtered = filtered.filter(r => r.Altersklasse && r.Altersklasse.startsWith('M'));
+        } else if (currentAgeGroup === 'W') {
+            // All women
+            filtered = filtered.filter(r => r.Altersklasse && r.Altersklasse.startsWith('W'));
+        } else {
+            // Specific age group
+            filtered = filtered.filter(r => r.Altersklasse === currentAgeGroup);
+        }
+    }
+
+    // Update count display
     const countEl = document.getElementById('participant-count');
     if (countEl) {
-        countEl.textContent = `${filtered.length} Ergebnisse`;
+        let label = 'Ergebnisse';
+        if (currentAgeGroup === 'M') {
+            label = 'Ergebnisse (Männer)';
+        } else if (currentAgeGroup === 'W') {
+            label = 'Ergebnisse (Frauen)';
+        } else if (currentAgeGroup !== 'Gesamt') {
+            label = `Ergebnisse (${currentAgeGroup})`;
+        }
+        countEl.textContent = `${filtered.length} ${label}`;
     }
 
     const tbody = document.getElementById('results-body');
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">Keine Ergebnisse für diese Strecke.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">Keine Ergebnisse für diese Auswahl.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filtered.map((r, i) => `
-        <tr>
-            <td>${i + 1}</td>
-            <td>${r.Vorname} ${r.Nachname}</td>
-            <td>${r.Verein || '-'}</td>
-            <td>${r.Zeit}</td>
-            <td><button class="urkunde-btn" onclick="generateCertificate(${i + 1}, '${r.Vorname}', '${r.Nachname}', '${r.Zeit}', '${r.Strecke}', '${r.Verein || '-'}')">PDF</button></td>
-        </tr>
-    `).join('');
+    // Determine which rank to show based on filter
+    const showAKRank = currentAgeGroup !== 'Gesamt' && currentAgeGroup !== 'M' && currentAgeGroup !== 'W';
+
+    tbody.innerHTML = filtered.map(r => {
+        const displayRank = showAKRank ? r.platzAK : r.platzGesamt;
+        const akDisplay = r.Altersklasse || '-';
+        const escapedVerein = (r.Verein || '-').replace(/'/g, "\\'");
+        const escapedVorname = (r.Vorname || '').replace(/'/g, "\\'");
+        const escapedNachname = (r.Nachname || '').replace(/'/g, "\\'");
+
+        return `
+            <tr>
+                <td>${displayRank}</td>
+                <td>${r.Vorname} ${r.Nachname}</td>
+                <td>${r.Verein || '-'}</td>
+                <td>${akDisplay}</td>
+                <td>${r.Zeit}</td>
+                <td><button class="urkunde-btn" onclick="generateCertificate(${r.platzGesamt}, '${escapedVorname}', '${escapedNachname}', '${r.Zeit}', '${r.Strecke}', '${escapedVerein}', '${akDisplay}', ${r.platzAK})">PDF</button></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function switchDistance(distance) {
@@ -348,14 +493,14 @@ function switchDistance(distance) {
     if (document.getElementById('teilnehmer-section')) {
         showParticipants(distance);
     } else if (document.getElementById('ergebnisse-section')) {
-        showResults(distance);
+        showResults(distance, currentAgeGroup);
     }
 }
 
 function showNoDataMessage(message) {
     const tbody = document.getElementById('results-body');
     if (tbody) {
-        const colspan = document.getElementById('ergebnisse-section') ? 5 : 2;
+        const colspan = document.getElementById('ergebnisse-section') ? 6 : 2;
         tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; padding: 40px; color: #666;">${message}</td></tr>`;
     }
 }
@@ -363,7 +508,7 @@ function showNoDataMessage(message) {
 // ============================================
 // URKUNDEN PDF GENERIERUNG
 // ============================================
-function generateCertificate(platz, vorname, nachname, zeit, strecke, verein) {
+function generateCertificate(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK) {
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 1131; // A4 Verhältnis
@@ -411,26 +556,33 @@ function generateCertificate(platz, vorname, nachname, zeit, strecke, verein) {
         ctx.fillText(verein, canvas.width / 2, 470);
     }
 
-    // Platzierung
+    // Gesamtplatzierung
     ctx.font = 'bold 72px Arial';
     ctx.fillStyle = '#1a5f7a';
-    ctx.fillText(`${platz}. Platz`, canvas.width / 2, 600);
+    ctx.fillText(`${platz}. Platz`, canvas.width / 2, 580);
+
+    // Altersklassen-Platzierung (if available)
+    if (altersklasse && altersklasse !== '-' && platzAK) {
+        ctx.font = '28px Arial';
+        ctx.fillStyle = '#333';
+        ctx.fillText(`${platzAK}. Platz in ${altersklasse}`, canvas.width / 2, 640);
+    }
 
     // Strecke
     const streckeText = strecke.includes('10') ? '10,6 km' : '5,3 km';
     ctx.font = '28px Arial';
     ctx.fillStyle = '#333';
-    ctx.fillText(`Strecke: ${streckeText}`, canvas.width / 2, 680);
+    ctx.fillText(`Strecke: ${streckeText}`, canvas.width / 2, 710);
 
     // Zeit
     ctx.font = 'bold 36px Arial';
     ctx.fillStyle = '#1a5f7a';
-    ctx.fillText(`Zeit: ${zeit}`, canvas.width / 2, 750);
+    ctx.fillText(`Zeit: ${zeit}`, canvas.width / 2, 780);
 
     // Ort
     ctx.font = '18px Arial';
     ctx.fillStyle = '#666';
-    ctx.fillText('Stausee Bad Wörishofen / Wiedergeltingen', canvas.width / 2, 900);
+    ctx.fillText('Stausee Bad Wörishofen / Wiedergeltingen', canvas.width / 2, 920);
 
     // Download
     const link = document.createElement('a');
