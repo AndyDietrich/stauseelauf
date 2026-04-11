@@ -1,0 +1,19 @@
+# Lokale Test-Dateien
+anmeldungen.json
+status.json
+server.js
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Lokale Konfiguration
+.claude/

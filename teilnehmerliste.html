@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teilnehmerliste - Stauseelauf 2026</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <a href="index.html" class="nav-brand">
+                <img src="images/tsvbw.jpg" alt="TSV Bad Wörishofen" class="nav-logo">
+                Stauseelauf 2026
+            </a>
+            <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="index.html">Start</a></li>
+                <li><a href="registration.html">Anmeldung</a></li>
+                <li id="nav-teilnehmer"><a href="teilnehmerliste.html" class="active">Teilnehmerliste</a></li>
+                <li id="nav-ergebnisse" class="hidden"><a href="ergebnisse.html">Ergebnisse</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header>
+        <div class="hero-image">
+            <img src="images/Stauseelauf004.jpg" alt="Stauseelauf - Läufer am Start">
+        </div>
+        <div class="hero-content">
+            <h1>Teilnehmerliste</h1>
+            <p class="subtitle">Stauseelauf 2026 - 7. August 2026</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="info-section" id="teilnehmer-section">
+            <div id="results-tabs" style="margin-bottom: 20px;">
+                <button class="tab-btn active" onclick="switchDistance('5.3km')">5,3 km</button>
+                <button class="tab-btn" onclick="switchDistance('10.6km')">10,6 km</button>
+            </div>
+            <p id="participant-count" style="margin-bottom: 15px; color: #666;"></p>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Verein</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <tr><td colspan="2" style="text-align: center; padding: 40px; color: #666;">Laden...</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TSV Bad Wörishofen - Leichtathletik</p>
+            <p>
+                <a href="https://www.tsv-bw.de" target="_blank">www.tsv-bw.de</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

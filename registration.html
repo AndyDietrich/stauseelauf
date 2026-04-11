@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anmeldung - Stauseelauf 2026</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <a href="index.html" class="nav-brand">
+                <img src="images/tsvbw.jpg" alt="TSV Bad Wörishofen" class="nav-logo">
+                Stauseelauf 2026
+            </a>
+            <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="index.html">Start</a></li>
+                <li><a href="registration.html" class="active">Anmeldung</a></li>
+                <li id="nav-teilnehmer" class="hidden"><a href="teilnehmerliste.html">Teilnehmerliste</a></li>
+                <li id="nav-ergebnisse" class="hidden"><a href="ergebnisse.html">Ergebnisse</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header>
+        <div class="hero-image">
+            <img src="images/Stauseelauf004.jpg" alt="Stauseelauf - Läufer am Start">
+        </div>
+        <div class="hero-content">
+            <h1>Online-Anmeldung</h1>
+            <p class="subtitle">Stauseelauf 2026 - 7. August 2026</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="registration-section" id="anmeldung">
+            <p class="price-info">Organisationsbeitrag: <strong>15 EUR</strong> | Kinderlauf (U16): <strong>7 EUR</strong></p>
+            <p class="deadline">Anmeldeschluss: 06.08.2026, 24:00 Uhr</p>
+
+            <form id="registration-form" class="registration-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Vorname *</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Nachname *</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-Mail *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birthDate">Geburtsdatum *</label>
+                        <input type="text" id="birthDate" name="birthDate" placeholder="TT.MM.JJJJ" pattern="\d{2}\.\d{2}\.\d{4}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Geschlecht *</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Bitte wählen</option>
+                            <option value="m">Männlich</option>
+                            <option value="w">Weiblich</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="distance">Strecke *</label>
+                    <select id="distance" name="distance" required onchange="updatePrice()">
+                        <option value="">Bitte wählen</option>
+                        <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
+                        <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
+                        <option value="kinderlauf">Kinderlauf bis U16, Start 17:30 Uhr – 7 EUR</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="club">Verein / Team (optional)</label>
+                    <input type="text" id="club" name="club">
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="imageRights" name="imageRights" required>
+                        Ich stimme zu, dass der Veranstalter Fotos und Videos der Veranstaltung veröffentlichen darf, auf denen ich abgebildet sein kann. *
+                    </label>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="liability" name="liability" required>
+                        Ich nehme zur Kenntnis, dass die Teilnahme auf eigene Gefahr erfolgt und der Veranstalter keine Haftung für Schäden übernimmt. *
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    Weiter zur Zahlung (15 EUR)
+                </button>
+                <script>
+                    function updatePrice() {
+                        const distance = document.getElementById('distance').value;
+                        const btn = document.getElementById('submit-btn');
+                        btn.textContent = distance === 'kinderlauf'
+                            ? 'Weiter zur Zahlung (7 EUR)'
+                            : 'Weiter zur Zahlung (15 EUR)';
+                    }
+                </script>
+
+                <p class="payment-note">
+                    Nach erfolgreicher Zahlung erhältst du eine Bestätigung per E-Mail.
+                </p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TSV Bad Wörishofen - Leichtathletik</p>
+            <p>
+                <a href="https://www.tsv-bw.de" target="_blank">www.tsv-bw.de</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
