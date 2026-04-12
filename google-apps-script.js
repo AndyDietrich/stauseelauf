@@ -183,7 +183,6 @@ function createStripeCheckoutSession(participant) {
   const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : PRICE_CENTS_DEFAULT;
 
   const payload = {
-    'payment_method_types[]': 'card',
     'line_items[0][price_data][currency]': 'eur',
     'line_items[0][price_data][unit_amount]': String(priceCents),
     'line_items[0][price_data][product_data][name]': 'Stauseelauf 2026 - ' + distanceLabel,

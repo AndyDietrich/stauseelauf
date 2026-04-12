@@ -489,7 +489,7 @@ function showResults(distance, ageGroup = null) {
                 <td>${r.Verein || '-'}</td>
                 <td>${akDisplay}</td>
                 <td>${r.Zeit}</td>
-                <td><button class="urkunde-btn" onclick="generateCertificate(${r.platzGesamt}, '${escapedVorname}', '${escapedNachname}', '${r.Zeit}', '${r.Strecke}', '${escapedVerein}', '${akDisplay}', ${r.platzAK})">PDF</button></td>
+                <td><button class="urkunde-btn" onclick="generateCertificate(${r.platzGesamt}, '${escapedVorname}', '${escapedNachname}', '${r.Zeit}', '${r.Strecke}', '${escapedVerein}', '${akDisplay}', ${r.platzAK})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></td>
             </tr>
         `;
     }).join('');
@@ -525,32 +525,32 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
 
     const font = 'Calibri, Candara, "Segoe UI", Arial, sans-serif';
     const cx = canvas.width * 0.60;
-    const lineGap = 48;
     const colorDark = '#04368b';
     const colorMid  = '#444444';
     const streckeText = strecke === 'kinderlauf' ? 'Kinderlauf (U16)' : strecke.includes('10') ? '10,6 km' : '5,3 km';
 
-    // Zeilen zusammenstellen
+    // Zeilen mit individuellem Abstand
     const lines = [];
-    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark });
+    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: 60 });
     if (verein && verein !== '-')
-        lines.push({ text: verein, font: `22px ${font}`, color: colorMid });
-    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark });
+        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 50 });
+    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: 38 });
     if (altersklasse && altersklasse !== '-' && platzAK)
-        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid });
-    lines.push({ text: `Strecke: ${streckeText}`, font: `26px ${font}`, color: colorMid });
-    lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark });
+        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 38 });
+    lines.push({ text: `Strecke: ${streckeText}`, font: `26px ${font}`, color: colorMid, gap: 50 });
+    lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
     // Vertikal zentrieren im Freifeld (y=454..880 → Mitte=667)
-    const totalH = (lines.length - 1) * lineGap + 40;
-    let cy = Math.round(canvas.height * (667 / 1131)) - Math.round(totalH / 2);
+    const totalH = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0) + 40;
+    const areaCenter = Math.round(canvas.height * (667 / 1131));
+    let cy = areaCenter - Math.round(totalH / 2);
 
     ctx.textAlign = 'center';
     lines.forEach(line => {
         ctx.font = line.font;
         ctx.fillStyle = line.color;
         ctx.fillText(line.text, cx, cy);
-        cy += lineGap;
+        cy += line.gap;
     });
 
     return canvas;
