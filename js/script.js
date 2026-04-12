@@ -264,7 +264,7 @@ async function loadParticipants() {
 function showParticipants(distance) {
     currentDistance = distance;
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.includes(distance.replace('km', '')));
+        btn.classList.toggle('active', btn.dataset.distance === distance);
     });
 
     const filtered = allParticipants
@@ -413,7 +413,7 @@ function showResults(distance, ageGroup = null) {
 
     // Update distance tab styles
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.includes(distance.replace('km', '')));
+        btn.classList.toggle('active', btn.dataset.distance === distance);
     });
 
     // Filter by distance first
