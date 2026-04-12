@@ -427,14 +427,15 @@ main {
 
 /* Footer */
 footer {
-    background: var(--primary-dark);
-    color: var(--white);
+    background: var(--bg-light);
+    color: var(--text-light);
+    border-top: 1px solid #e0e0e0;
     padding: 30px 20px;
     text-align: center;
 }
 
 footer a {
-    color: var(--secondary-color);
+    color: var(--primary-color);
     text-decoration: none;
 }
 
@@ -570,17 +571,18 @@ footer p {
 }
 
 @media (max-width: 600px) {
-    /* Ergebnisse & Teilnehmerliste: Tabelle scrollbar */
-    .info-section {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    /* Ergebnisse: Verein (3.) und AK (4.) ausblenden */
+    #results-table th:nth-child(3),
+    #results-table td:nth-child(3),
+    #results-table th:nth-child(4),
+    #results-table td:nth-child(4) {
+        display: none;
     }
 
     #results-table th,
     #results-table td {
         padding: 10px 8px;
-        font-size: 0.82rem;
-        white-space: nowrap;
+        font-size: 0.88rem;
     }
 
     /* Tabs & Filter */
