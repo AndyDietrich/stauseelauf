@@ -524,7 +524,7 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     ctx.drawImage(certificateBg, 0, 0, canvas.width, canvas.height);
 
     const font = 'Calibri, Candara, "Segoe UI", Arial, sans-serif';
-    const cx = canvas.width * 0.60;
+    const cx = canvas.width * 0.70;
     const colorDark = '#04368b';
     const colorMid  = '#444444';
     const streckeText = strecke === 'kinderlauf' ? 'Kinderlauf (U16)' : strecke.includes('10') ? '10,6 km' : '5,3 km';
@@ -540,9 +540,9 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     lines.push({ text: `Strecke: ${streckeText}`, font: `26px ${font}`, color: colorMid, gap: 50 });
     lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
-    // Vertikal zentrieren im Freifeld (y=454..880 → Mitte=667)
+    // Vertikal zentrieren im Freifeld (y=750..1650 im Bild → Mitte=1200/2000=0.60)
     const totalH = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0) + 40;
-    const areaCenter = Math.round(canvas.height * (667 / 1131));
+    const areaCenter = Math.round(canvas.height * 0.60);
     let cy = areaCenter - Math.round(totalH / 2);
 
     ctx.textAlign = 'center';
