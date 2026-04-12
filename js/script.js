@@ -47,7 +47,7 @@ function toggleNav() {
 
 async function checkPublishStatus() {
     try {
-        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
+        const response = await fetch('data/data.json', { cache: 'no-cache' });
         const data = await response.json();
         const status = data.status || 'FALSE';
 
@@ -240,7 +240,7 @@ let currentDistance = '5.3km';
 
 async function loadParticipants() {
     try {
-        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
+        const response = await fetch('data/data.json', { cache: 'no-cache' });
         const data = await response.json();
 
         const status = data.status || 'FALSE';
@@ -333,7 +333,7 @@ const AGE_GROUP_OPTIONS = [
 
 async function loadResults() {
     try {
-        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=data`);
+        const response = await fetch('data/data.json', { cache: 'no-cache' });
         const data = await response.json();
 
         const status = data.status || 'FALSE';
