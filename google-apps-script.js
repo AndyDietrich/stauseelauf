@@ -7,6 +7,10 @@ const STRIPE_SECRET_KEY =
 '';
 const STRIPE_WEBHOOK_SECRET = ''; // Optional: Add webhook signing secret for production
 
+// Resend Email Configuration
+const RESEND_API_KEY = ''; // API Key von resend.com eintragen
+const EMAIL_FROM = 'anmeldung@kneipp-run.de';
+
 // Website URLs
 const SUCCESS_URL = 'https://kneipp-run.de/success';
 const CANCEL_URL = 'https://kneipp-run.de/registration?error=cancelled';
@@ -252,6 +256,67 @@ function handleCheckoutCompleted(session) {
   ]);
 
   Logger.log('Registration saved: ' + metadata.firstName + ' ' + metadata.lastName);
+
+  try {
+    sendConfirmationEmail(metadata);
+  } catch (emailError) {
+    Logger.log('E-Mail Fehler: ' + emailError.message);
+    // Nicht werfen — Anmeldung ist bereits gespeichert
+  }
+}
+
+// ============================================
+// EMAIL
+// ============================================
+
+function sendConfirmationEmail(metadata) {
+  const distanceLabel =
+    metadata.distance === 'kinderlauf' ? 'Kinderlauf (U16) – Start 17:30 Uhr' :
+    metadata.distance === '10.6km'     ? '10,6 km – Start 18:00 Uhr' :
+                                         '5,3 km – Start 18:00 Uhr';
+  const price = metadata.distance === 'kinderlauf' ? '7,00 EUR' : '15,00 EUR';
+  const verein = (metadata.club && metadata.club !== '-') ? metadata.club : '';
+
+  const html = `
+<p>Hallo ${metadata.firstName},</p>
+<p>vielen Dank für deine Anmeldung zum <strong>Stauseelauf 2026</strong>!
+Deine Zahlung wurde erfolgreich verarbeitet.</p>
+<table style="border-collapse:collapse; margin:20px 0;">
+  <tr><td style="padding:6px 16px 6px 0;color:#666;">Name</td>
+      <td><strong>${metadata.firstName} ${metadata.lastName}</strong></td></tr>
+  ${verein ? `<tr><td style="padding:6px 16px 6px 0;color:#666;">Verein</td><td>${verein}</td></tr>` : ''}
+  <tr><td style="padding:6px 16px 6px 0;color:#666;">Strecke</td><td>${distanceLabel}</td></tr>
+  <tr><td style="padding:6px 16px 6px 0;color:#666;">Betrag</td><td>${price}</td></tr>
+  <tr><td style="padding:6px 16px 6px 0;color:#666;">Datum</td><td>07. August 2026</td></tr>
+  <tr><td style="padding:6px 16px 6px 0;color:#666;">Ort</td>
+      <td>Seglerheim am Stausee, Am Stausee 2, 86879 Wiedergeltingen</td></tr>
+</table>
+<p><strong>Wichtige Infos für den Lauftag:</strong></p>
+<ul>
+  <li>Startnummernausgabe: ab 16:30 Uhr</li>
+  <li>Bitte bringe diese E-Mail (ausgedruckt oder digital) mit</li>
+  <li>Parkmöglichkeiten sind vor Ort vorhanden</li>
+</ul>
+<p>Wir freuen uns auf dich!<br>
+TSV Bad Wörishofen – Leichtathletik<br>
+<a href="https://kneipp-run.de">kneipp-run.de</a></p>`;
+
+  const response = UrlFetchApp.fetch('https://api.resend.com/emails', {
+    method: 'post',
+    headers: {
+      'Authorization': 'Bearer ' + RESEND_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify({
+      from: EMAIL_FROM,
+      to: [metadata.email],
+      subject: 'Anmeldebestätigung Stauseelauf 2026',
+      html: html
+    }),
+    muteHttpExceptions: true
+  });
+
+  Logger.log('Resend Response: ' + response.getContentText());
 }
 
 // ============================================
