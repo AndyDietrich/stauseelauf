@@ -531,18 +531,20 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
 
     // Zeilen mit individuellem Abstand
     const lines = [];
-    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: 60 });
+    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: 56 });
     if (verein && verein !== '-')
-        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 50 });
-    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: 38 });
+        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 46 });
+    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: 46 });
     if (altersklasse && altersklasse !== '-' && platzAK)
-        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 38 });
-    lines.push({ text: `Strecke: ${streckeText}`, font: `26px ${font}`, color: colorMid, gap: 50 });
+        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 46 });
+    lines.push({ text: `Strecke: ${streckeText}`, font: `26px ${font}`, color: colorMid, gap: 46 });
     lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
-    // Vertikal zentrieren im Freifeld (y=750..1650 im Bild → Mitte=1200/2000=0.60)
-    const totalH = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0) + 40;
-    const areaCenter = Math.round(canvas.height * 0.60);
+    // Freies Textfeld: Bild y=795–1685 → Canvas y=450–954
+    const AREA_TOP    = Math.round(canvas.height * (450 / 1132));
+    const AREA_BOTTOM = Math.round(canvas.height * (954 / 1132));
+    const areaCenter  = Math.round((AREA_TOP + AREA_BOTTOM) / 2);
+    const totalH = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0) + 36;
     let cy = areaCenter - Math.round(totalH / 2);
 
     ctx.textAlign = 'center';
