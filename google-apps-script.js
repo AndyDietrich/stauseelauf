@@ -8,8 +8,8 @@ const STRIPE_SECRET_KEY =
 const STRIPE_WEBHOOK_SECRET = ''; // Optional: Add webhook signing secret for production
 
 // Website URLs
-const SUCCESS_URL = 'https://andydietrich.github.io/stauseelauf/success.html';
-const CANCEL_URL = 'https://andydietrich.github.io/stauseelauf/registration.html?error=cancelled';
+const SUCCESS_URL = 'https://kneipp-run.de/success.html';
+const CANCEL_URL = 'https://kneipp-run.de/registration.html?error=cancelled';
 
 // Prices in cents
 const PRICE_CENTS_DEFAULT = 1500; // 15 EUR
