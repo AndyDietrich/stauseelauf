@@ -7,10 +7,6 @@ const STRIPE_SECRET_KEY =
 '';
 const STRIPE_WEBHOOK_SECRET = ''; // Optional: Add webhook signing secret for production
 
-// Resend Email Configuration
-const RESEND_API_KEY = ''; // API Key von resend.com eintragen
-const EMAIL_FROM = 'anmeldung@kneipp-run.de';
-
 // Website URLs
 const SUCCESS_URL = 'https://kneipp-run.de/success';
 const CANCEL_URL = 'https://kneipp-run.de/registration?error=cancelled';
@@ -67,9 +63,9 @@ function doPost(e) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
 
-      // Check for duplicate using payment_intent ID
-      if (isDuplicatePayment(session.payment_intent)) {
-        Logger.log('Duplicate webhook ignored: ' + session.payment_intent);
+      // Check for duplicate using orderId
+      if (isDuplicateOrder(session.metadata.orderId)) {
+        Logger.log('Duplicate webhook ignored: ' + session.metadata.orderId);
         return ContentService
           .createTextOutput(JSON.stringify({ received: true, duplicate: true }))
           .setMimeType(ContentService.MimeType.JSON);
@@ -91,16 +87,16 @@ function doPost(e) {
   }
 }
 
-// Check if this payment has already been processed
-function isDuplicatePayment(paymentIntentId) {
-  if (!paymentIntentId) return false;
+// Check if this order has already been processed (by orderId)
+function isDuplicateOrder(orderId) {
+  if (!orderId) return false;
 
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   const data = sheet.getDataRange().getValues();
 
-  // Column J (index 9) contains the Stripe Payment ID
+  // Column J (index 9) = OrderID, Column I (index 8) = Status
   for (let i = 1; i < data.length; i++) {
-    if (data[i][9] === paymentIntentId) {
+    if (data[i][9] === orderId && data[i][8] === 'Bezahlt') {
       return true;
     }
   }
@@ -117,24 +113,30 @@ function handleDataRequest() {
   const headers = data[0];
   const rows = data.slice(1);
 
-  const results = rows.map(row => {
-    const obj = {};
-    headers.forEach((header, index) => {
-      obj[header] = row[index];
+  const results = rows
+    .filter(row => {
+      // Only return confirmed registrations (Status = 'Bezahlt')
+      const statusIdx = headers.indexOf('Status');
+      return statusIdx === -1 || row[statusIdx] === 'Bezahlt';
+    })
+    .map(row => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = row[index];
+      });
+
+      // Calculate and add age group data
+      const age = calculateAgeOnRaceDay(obj.Jahrgang);
+      obj.Alter = age;
+      obj.Altersklasse = getAgeGroup(age, obj.Geschlecht);
+
+      // Format Zeit if it's a Date object
+      if (obj.Zeit) {
+        obj.Zeit = formatTime(obj.Zeit);
+      }
+
+      return obj;
     });
-
-    // Calculate and add age group data
-    const age = calculateAgeOnRaceDay(obj.Geburtsdatum);
-    obj.Alter = age;
-    obj.Altersklasse = getAgeGroup(age, obj.Geschlecht);
-
-    // Format Zeit if it's a Date object
-    if (obj.Zeit) {
-      obj.Zeit = formatTime(obj.Zeit);
-    }
-
-    return obj;
-  });
 
   const status = sheet.getRange(PUBLISH_CELL).getValue() || 'FALSE';
 
@@ -155,23 +157,45 @@ function handleStatusRequest() {
 // ============================================
 
 function handleCreateCheckout(params) {
-  // Validate required fields
-  if (!params.firstName || !params.lastName || !params.email) {
+  if (!params.email || !params.participants) {
     return jsonResponse({ error: 'missing_fields' });
   }
 
-  const participant = {
-    firstName: params.firstName,
-    lastName: params.lastName,
-    email: params.email,
-    birthDate: params.birthDate || '',
-    gender: params.gender || '',
-    distance: params.distance || '',
-    club: params.club || '-'
-  };
+  let participants;
+  try {
+    participants = JSON.parse(params.participants);
+  } catch (e) {
+    return jsonResponse({ error: 'invalid_participants' });
+  }
+
+  if (!participants.length) {
+    return jsonResponse({ error: 'no_participants' });
+  }
+
+  const email = params.email;
+  const orderId = 'order_' + Date.now();
+
+  // Pre-store all participants with status "Ausstehend"
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  participants.forEach(function(p) {
+    sheet.appendRow([
+      new Date().toLocaleString('de-DE'), // Timestamp
+      p.firstName,                         // Vorname
+      p.lastName,                          // Nachname
+      email,                               // E-Mail
+      p.birthYear || '',                   // Jahrgang
+      p.gender || '',                      // Geschlecht
+      p.distance || '',                    // Strecke
+      p.club || '-',                       // Verein
+      'Ausstehend',                        // Status
+      orderId,                             // OrderID
+      '',                                  // Stripe Payment ID
+      ''                                   // Startnummer
+    ]);
+  });
 
   try {
-    const checkoutUrl = createStripeCheckoutSession(participant);
+    const checkoutUrl = createStripeCheckoutSession(participants, email, orderId);
     return jsonResponse({ checkoutUrl: checkoutUrl });
   } catch (error) {
     Logger.log('Stripe error: ' + error.message);
@@ -179,33 +203,32 @@ function handleCreateCheckout(params) {
   }
 }
 
-function createStripeCheckoutSession(participant) {
+function createStripeCheckoutSession(participants, email, orderId) {
   const url = 'https://api.stripe.com/v1/checkout/sessions';
 
-  const isKinderlauf = participant.distance === 'kinderlauf';
-  const distanceLabel = isKinderlauf ? 'Kinderlauf (U16)' : participant.distance.includes('10') ? '10,6 km' : '5,3 km';
-  const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : PRICE_CENTS_DEFAULT;
-
   const payload = {
-    'line_items[0][price_data][currency]': 'eur',
-    'line_items[0][price_data][unit_amount]': String(priceCents),
-    'line_items[0][price_data][product_data][name]': 'Stauseelauf 2026 - ' + distanceLabel,
-    'line_items[0][price_data][product_data][description]': participant.firstName + ' ' + participant.lastName,
-    'line_items[0][quantity]': '1',
     'mode': 'payment',
     'success_url': SUCCESS_URL,
     'cancel_url': CANCEL_URL,
-    'customer_email': participant.email,
-    'metadata[firstName]': participant.firstName,
-    'metadata[lastName]': participant.lastName,
-    'metadata[email]': participant.email,
-    'metadata[birthDate]': participant.birthDate,
-    'metadata[gender]': participant.gender,
-    'metadata[distance]': participant.distance,
-    'metadata[club]': participant.club
+    'customer_email': email,
+    'metadata[orderId]': orderId,
+    'metadata[email]': email,
+    'metadata[count]': String(participants.length)
   };
 
-  const options = {
+  participants.forEach(function(p, i) {
+    const isKinderlauf = p.distance === 'kinderlauf';
+    const distanceLabel = isKinderlauf ? 'Kinderlauf (U16)' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
+    const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : PRICE_CENTS_DEFAULT;
+
+    payload['line_items[' + i + '][price_data][currency]'] = 'eur';
+    payload['line_items[' + i + '][price_data][unit_amount]'] = String(priceCents);
+    payload['line_items[' + i + '][price_data][product_data][name]'] = 'Stauseelauf 2026 - ' + distanceLabel;
+    payload['line_items[' + i + '][price_data][product_data][description]'] = p.firstName + ' ' + p.lastName;
+    payload['line_items[' + i + '][quantity]'] = '1';
+  });
+
+  const response = UrlFetchApp.fetch(url, {
     method: 'post',
     headers: {
       'Authorization': 'Bearer ' + STRIPE_SECRET_KEY,
@@ -213,9 +236,8 @@ function createStripeCheckoutSession(participant) {
     },
     payload: payload,
     muteHttpExceptions: true
-  };
+  });
 
-  const response = UrlFetchApp.fetch(url, options);
   const result = JSON.parse(response.getContentText());
 
   if (result.error) {
@@ -231,92 +253,27 @@ function createStripeCheckoutSession(participant) {
 // ============================================
 
 function handleCheckoutCompleted(session) {
-  const metadata = session.metadata;
+  const orderId = session.metadata.orderId;
 
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-
   if (!sheet) {
     Logger.log('Sheet not found: ' + SHEET_NAME);
     return;
   }
 
-  // Append new row with participant data
-  sheet.appendRow([
-    new Date().toLocaleString('de-DE'),  // Timestamp
-    metadata.firstName,                   // Vorname
-    metadata.lastName,                    // Nachname
-    metadata.email,                       // E-Mail
-    metadata.birthDate,                   // Geburtsdatum
-    metadata.gender,                      // Geschlecht
-    metadata.distance,                    // Strecke
-    metadata.club,                        // Verein
-    'Bezahlt',                           // Zahlungsstatus
-    session.payment_intent,              // Stripe Payment ID
-    ''                                    // Startnummer (manual entry)
-  ]);
+  const data = sheet.getDataRange().getValues();
+  let updated = 0;
 
-  Logger.log('Registration saved: ' + metadata.firstName + ' ' + metadata.lastName);
-
-  try {
-    sendConfirmationEmail(metadata);
-  } catch (emailError) {
-    Logger.log('E-Mail Fehler: ' + emailError.message);
-    // Nicht werfen — Anmeldung ist bereits gespeichert
+  // Find all "Ausstehend" rows with this orderId and mark as "Bezahlt"
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][9] === orderId && data[i][8] === 'Ausstehend') {
+      sheet.getRange(i + 1, 9).setValue('Bezahlt');              // Status (col I)
+      sheet.getRange(i + 1, 11).setValue(session.payment_intent); // Stripe Payment ID (col K)
+      updated++;
+    }
   }
-}
 
-// ============================================
-// EMAIL
-// ============================================
-
-function sendConfirmationEmail(metadata) {
-  const distanceLabel =
-    metadata.distance === 'kinderlauf' ? 'Kinderlauf (U16) – Start 17:30 Uhr' :
-    metadata.distance === '10.6km'     ? '10,6 km – Start 18:00 Uhr' :
-                                         '5,3 km – Start 18:00 Uhr';
-  const price = metadata.distance === 'kinderlauf' ? '7,00 EUR' : '15,00 EUR';
-  const verein = (metadata.club && metadata.club !== '-') ? metadata.club : '';
-
-  const html = `
-<p>Hallo ${metadata.firstName},</p>
-<p>vielen Dank für deine Anmeldung zum <strong>Stauseelauf 2026</strong>!
-Deine Zahlung wurde erfolgreich verarbeitet.</p>
-<table style="border-collapse:collapse; margin:20px 0;">
-  <tr><td style="padding:6px 16px 6px 0;color:#666;">Name</td>
-      <td><strong>${metadata.firstName} ${metadata.lastName}</strong></td></tr>
-  ${verein ? `<tr><td style="padding:6px 16px 6px 0;color:#666;">Verein</td><td>${verein}</td></tr>` : ''}
-  <tr><td style="padding:6px 16px 6px 0;color:#666;">Strecke</td><td>${distanceLabel}</td></tr>
-  <tr><td style="padding:6px 16px 6px 0;color:#666;">Betrag</td><td>${price}</td></tr>
-  <tr><td style="padding:6px 16px 6px 0;color:#666;">Datum</td><td>07. August 2026</td></tr>
-  <tr><td style="padding:6px 16px 6px 0;color:#666;">Ort</td>
-      <td>Seglerheim am Stausee, Am Stausee 2, 86879 Wiedergeltingen</td></tr>
-</table>
-<p><strong>Wichtige Infos für den Lauftag:</strong></p>
-<ul>
-  <li>Startnummernausgabe: ab 16:30 Uhr</li>
-  <li>Bitte bringe diese E-Mail (ausgedruckt oder digital) mit</li>
-  <li>Parkmöglichkeiten sind vor Ort vorhanden</li>
-</ul>
-<p>Wir freuen uns auf dich!<br>
-TSV Bad Wörishofen – Leichtathletik<br>
-<a href="https://kneipp-run.de">kneipp-run.de</a></p>`;
-
-  const response = UrlFetchApp.fetch('https://api.resend.com/emails', {
-    method: 'post',
-    headers: {
-      'Authorization': 'Bearer ' + RESEND_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    payload: JSON.stringify({
-      from: EMAIL_FROM,
-      to: [metadata.email],
-      subject: 'Anmeldebestätigung Stauseelauf 2026',
-      html: html
-    }),
-    muteHttpExceptions: true
-  });
-
-  Logger.log('Resend Response: ' + response.getContentText());
+  Logger.log('Order ' + orderId + ': ' + updated + ' Teilnehmer auf Bezahlt gesetzt.');
 }
 
 // ============================================
@@ -340,29 +297,6 @@ function redirectTo(url) {
 // ============================================
 
 /**
- * Parse German date format (DD.MM.YYYY) to Date object
- * Also handles Date objects from Google Sheets
- */
-function parseGermanDate(dateValue) {
-  if (!dateValue) return null;
-
-  // If it's already a Date object (from Google Sheets)
-  if (dateValue instanceof Date) {
-    return dateValue;
-  }
-
-  // If it's a string in DD.MM.YYYY format
-  const str = String(dateValue);
-  const parts = str.split('.');
-  if (parts.length !== 3) return null;
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10);
-  const year = parseInt(parts[2], 10);
-  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-  return new Date(year, month - 1, day);
-}
-
-/**
  * Format time value for display (handles Date objects from Sheets)
  */
 function formatTime(timeValue) {
@@ -381,20 +315,13 @@ function formatTime(timeValue) {
 }
 
 /**
- * Calculate age on race day
+ * Calculate age on race day based on birth year
  */
-function calculateAgeOnRaceDay(birthDateStr) {
-  const birthDate = parseGermanDate(birthDateStr);
-  if (!birthDate) return null;
-
-  let age = RACE_DATE.getFullYear() - birthDate.getFullYear();
-  const monthDiff = RACE_DATE.getMonth() - birthDate.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && RACE_DATE.getDate() < birthDate.getDate())) {
-    age--;
-  }
-
-  return age;
+function calculateAgeOnRaceDay(birthYear) {
+  if (!birthYear) return null;
+  const year = parseInt(birthYear);
+  if (isNaN(year)) return null;
+  return RACE_DATE.getFullYear() - year;
 }
 
 /**
@@ -453,10 +380,11 @@ function updatePreviewSheet() {
     vorname: headers.indexOf('Vorname'),
     nachname: headers.indexOf('Nachname'),
     verein: headers.indexOf('Verein'),
-    geburtsdatum: headers.indexOf('Geburtsdatum'),
+    geburtsdatum: headers.indexOf('Jahrgang'),
     geschlecht: headers.indexOf('Geschlecht'),
     strecke: headers.indexOf('Strecke'),
-    zeit: headers.indexOf('Zeit')
+    zeit: headers.indexOf('Zeit'),
+    status: headers.indexOf('Status')
   };
 
   // Check if Zeit column exists
@@ -465,9 +393,10 @@ function updatePreviewSheet() {
     return;
   }
 
-  // Process participants with times
+  // Process only confirmed participants with times
   const participants = rows
-    .filter(row => row[colIndex.zeit] && String(row[colIndex.zeit]).trim() !== '')
+    .filter(row => (colIndex.status === -1 || row[colIndex.status] === 'Bezahlt') &&
+                   row[colIndex.zeit] && String(row[colIndex.zeit]).trim() !== '')
     .map(row => {
       const age = calculateAgeOnRaceDay(row[colIndex.geburtsdatum]);
       const zeitFormatted = formatTime(row[colIndex.zeit]);
@@ -575,16 +504,17 @@ function onSheetEdit(e) {
 function testAddRow() {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   sheet.appendRow([
-    new Date().toLocaleString('de-DE'),
-    'Test',
-    'User',
-    'test@example.com',
-    '01.01.1990',
-    'm',
-    '5.3km',
-    'Test Club',
-    'Test',
-    'test_payment_id',
-    ''
+    new Date().toLocaleString('de-DE'), // Timestamp
+    'Test',                              // Vorname
+    'User',                              // Nachname
+    'test@example.com',                  // Email
+    '1990',                              // Jahrgang
+    'm',                                 // Geschlecht
+    '5.3km',                             // Strecke
+    'Test Club',                         // Verein
+    'Bezahlt',                           // Status
+    'order_test_' + Date.now(),          // OrderID
+    'test_payment_id',                   // Stripe Payment ID
+    ''                                   // Startnummer
   ]);
 }

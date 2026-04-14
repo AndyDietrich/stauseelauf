@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Registration form setup
     const form = document.getElementById('registration-form');
     if (form) {
-        setupBirthDateInput();
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
     }
@@ -70,39 +69,94 @@ async function checkPublishStatus() {
 }
 
 // ============================================
-// GEBURTSDATUM FORMATIERUNG
+// MULTI-TEILNEHMER
 // ============================================
-function setupBirthDateInput() {
-    const birthDateInput = document.getElementById('birthDate');
-    if (!birthDateInput) return;
+function addParticipant() {
+    const container = document.getElementById('participants-container');
+    const index = container.querySelectorAll('.participant-card').length;
 
-    birthDateInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) value = value.slice(0, 2) + '.' + value.slice(2);
-        if (value.length >= 5) value = value.slice(0, 5) + '.' + value.slice(5);
-        if (value.length > 10) value = value.slice(0, 10);
-        e.target.value = value;
-    });
+    const card = document.createElement('div');
+    card.className = 'participant-card';
+    card.dataset.index = index;
+    card.innerHTML = `
+        <div class="participant-card-header">
+            <button type="button" class="remove-participant-btn" onclick="removeParticipant(this)">Entfernen</button>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Vorname *</label>
+                <input type="text" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label>Nachname *</label>
+                <input type="text" name="lastName" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Jahrgang *</label>
+                <input type="number" name="birthYear" min="1920" max="2020" placeholder="z.B. 1990" required>
+            </div>
+            <div class="form-group">
+                <label>Geschlecht *</label>
+                <select name="gender" required>
+                    <option value="">Bitte wählen</option>
+                    <option value="m">Männlich</option>
+                    <option value="w">Weiblich</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Strecke *</label>
+            <select name="distance" required onchange="updateTotalPrice()">
+                <option value="">Bitte wählen</option>
+                <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
+                <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
+                <option value="kinderlauf">Kinderlauf bis U16, Start 17:30 Uhr – 7 EUR</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Verein / Team (optional)</label>
+            <input type="text" name="club">
+        </div>
+    `;
+    container.appendChild(card);
+    renumberCards();
+}
 
-    birthDateInput.addEventListener('blur', function(e) {
-        const value = e.target.value;
-        e.target.classList.toggle('error', value && !isValidGermanDate(value));
+function removeParticipant(btn) {
+    btn.closest('.participant-card').remove();
+    renumberCards();
+    updateTotalPrice();
+}
+
+function renumberCards() {
+    document.querySelectorAll('.participant-card').forEach((card, i) => {
+        card.dataset.index = i;
     });
 }
 
-function isValidGermanDate(dateStr) {
-    const regex = /^(\d{2})\.(\d{2})\.(\d{4})$/;
-    const match = dateStr.match(regex);
-    if (!match) return false;
+function updateTotalPrice() {
+    const selects = document.querySelectorAll('#participants-container select[name="distance"]');
+    let total = 0;
+    selects.forEach(sel => {
+        if (sel.value === 'kinderlauf') total += 7;
+        else if (sel.value) total += 15;
+    });
+    const btn = document.getElementById('submit-btn');
+    if (btn) btn.textContent = `Weiter zur Zahlung (${total} EUR)`;
+}
 
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10);
-    const year = parseInt(match[3], 10);
-
-    if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > new Date().getFullYear()) return false;
-
-    const date = new Date(year, month - 1, day);
-    return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
+function getParticipants() {
+    const cards = document.querySelectorAll('.participant-card');
+    return Array.from(cards).map(card => ({
+        firstName: card.querySelector('[name="firstName"]').value.trim(),
+        lastName:  card.querySelector('[name="lastName"]').value.trim(),
+        birthYear: card.querySelector('[name="birthYear"]').value,
+        gender:    card.querySelector('[name="gender"]').value,
+        distance:  card.querySelector('[name="distance"]').value,
+        club:      card.querySelector('[name="club"]').value.trim() || '-',
+    }));
 }
 
 // ============================================
@@ -115,28 +169,25 @@ async function handleFormSubmit(e) {
     setLoading(true);
     removeError();
 
-    const formData = {
-        firstName: document.getElementById('firstName').value.trim(),
-        lastName: document.getElementById('lastName').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        birthDate: document.getElementById('birthDate').value,
-        gender: document.getElementById('gender').value,
-        distance: document.getElementById('distance').value,
-        club: document.getElementById('club').value.trim() || '-',
-    };
+    const email = document.getElementById('email').value.trim();
+    const participants = getParticipants();
 
     try {
-        // Request Stripe Checkout URL from Apps Script
         const params = new URLSearchParams({
             action: 'createCheckout',
-            ...formData
+            email: email,
+            participants: JSON.stringify(participants)
         });
 
         const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?' + params.toString());
         const result = await response.json();
 
         if (result.checkoutUrl) {
-            // Redirect to Stripe Checkout
+            // Daten für Success-Seite zwischenspeichern
+            sessionStorage.setItem('registrationData', JSON.stringify({
+                email: email,
+                participants: participants
+            }));
             window.location.href = result.checkoutUrl;
         } else if (result.error) {
             setLoading(false);
@@ -159,35 +210,41 @@ function validateForm() {
     let isValid = true;
     removeError();
 
-    const requiredFields = ['firstName', 'lastName', 'email', 'birthDate', 'gender', 'distance', 'imageRights', 'liability'];
-    requiredFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field.type === 'checkbox') {
-            if (!field.checked) {
-                field.parentElement.classList.add('error');
-                isValid = false;
-            } else {
-                field.parentElement.classList.remove('error');
-            }
-        } else if (!field.value.trim()) {
-            field.classList.add('error');
-            isValid = false;
+    // E-Mail
+    const email = document.getElementById('email');
+    if (!email.value.trim()) {
+        email.classList.add('error');
+        isValid = false;
+    } else if (!isValidEmail(email.value)) {
+        email.classList.add('error');
+        isValid = false;
+    } else {
+        email.classList.remove('error');
+    }
+
+    // Alle Teilnehmer-Cards
+    document.querySelectorAll('.participant-card').forEach(card => {
+        ['firstName', 'lastName', 'gender', 'distance'].forEach(name => {
+            const field = card.querySelector(`[name="${name}"]`);
+            if (!field.value.trim()) { field.classList.add('error'); isValid = false; }
+            else field.classList.remove('error');
+        });
+
+        const by = card.querySelector('[name="birthYear"]');
+        const year = parseInt(by.value);
+        if (!by.value || isNaN(year) || year < 1920 || year > new Date().getFullYear()) {
+            by.classList.add('error'); isValid = false;
         } else {
-            field.classList.remove('error');
+            by.classList.remove('error');
         }
     });
 
-    const email = document.getElementById('email');
-    if (email.value && !isValidEmail(email.value)) {
-        email.classList.add('error');
-        isValid = false;
-    }
-
-    const birthDate = document.getElementById('birthDate');
-    if (birthDate.value && !isValidGermanDate(birthDate.value)) {
-        birthDate.classList.add('error');
-        isValid = false;
-    }
+    // Checkboxen
+    ['imageRights', 'liability'].forEach(id => {
+        const cb = document.getElementById(id);
+        if (!cb.checked) { cb.parentElement.classList.add('error'); isValid = false; }
+        else cb.parentElement.classList.remove('error');
+    });
 
     if (!isValid && !document.querySelector('.error-message')) {
         showError('Bitte fülle alle Pflichtfelder korrekt aus.');

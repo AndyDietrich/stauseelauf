@@ -187,7 +187,7 @@
             firstName: params.get('firstName') || '',
             lastName: params.get('lastName') || '',
             email: params.get('email') || '',
-            birthDate: params.get('birthDate') || '',
+            birthYear: params.get('birthYear') || '',
             gender: params.get('gender') || '',
             distance: params.get('distance') || '5.3km',
             club: params.get('club') || '-'
@@ -203,7 +203,7 @@
         document.getElementById('participant-details').innerHTML = `
             <strong>${participantData.firstName} ${participantData.lastName}</strong><br>
             ${participantData.email}<br>
-            Geburtsdatum: ${participantData.birthDate}<br>
+            Jahrgang: ${participantData.birthYear}<br>
             Geschlecht: ${genderText[participantData.gender] || participantData.gender}<br>
             Strecke: ${distanceText}<br>
             ${participantData.club !== '-' ? 'Verein: ' + participantData.club : ''}

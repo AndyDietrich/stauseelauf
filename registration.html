@@ -7,6 +7,49 @@
     <meta name="description" content="Online-Anmeldung zum Stauseelauf 2026. Anmeldeschluss: 06.08.2026. Strecken: 5,3 km, 10,6 km und Kinderlauf (U16). Organisationsbeitrag ab 7 EUR.">
     <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .participant-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            background: #fafafa;
+            position: relative;
+        }
+        .participant-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .participant-card-header h3 {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+        .remove-participant-btn {
+            background: none;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .remove-participant-btn:hover { background: #fee; border-color: #c00; color: #c00; }
+        .add-participant-btn {
+            width: 100%;
+            padding: 12px;
+            background: none;
+            border: 2px dashed #1a5f7a;
+            border-radius: 10px;
+            color: #1a5f7a;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .add-participant-btn:hover { background: rgba(26, 95, 122, 0.05); }
+    </style>
 </head>
 <body>
     <nav class="main-nav">
@@ -41,56 +84,59 @@
             <p class="deadline">Anmeldeschluss: 06.08.2026, 24:00 Uhr</p>
 
             <form id="registration-form" class="registration-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">Vorname *</label>
-                        <input type="text" id="firstName" name="firstName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lastName">Nachname *</label>
-                        <input type="text" id="lastName" name="lastName" required>
+                <div id="participants-container">
+                    <!-- Erste Teilnehmer-Card -->
+                    <div class="participant-card" data-index="0">
+                        <div class="form-group">
+                            <label for="email">E-Mail *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Vorname *</label>
+                                <input type="text" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nachname *</label>
+                                <input type="text" name="lastName" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Jahrgang *</label>
+                                <input type="number" name="birthYear" min="1920" max="2020" placeholder="z.B. 1990" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Geschlecht *</label>
+                                <select name="gender" required>
+                                    <option value="">Bitte wählen</option>
+                                    <option value="m">Männlich</option>
+                                    <option value="w">Weiblich</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Strecke *</label>
+                            <select name="distance" required onchange="updateTotalPrice()">
+                                <option value="">Bitte wählen</option>
+                                <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
+                                <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
+                                <option value="kinderlauf">Kinderlauf bis U16, Start 17:30 Uhr – 7 EUR</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Verein / Team (optional)</label>
+                            <input type="text" name="club">
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">E-Mail *</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="birthDate">Geburtsdatum *</label>
-                        <input type="text" id="birthDate" name="birthDate" placeholder="TT.MM.JJJJ" pattern="\d{2}\.\d{2}\.\d{4}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gender">Geschlecht *</label>
-                        <select id="gender" name="gender" required>
-                            <option value="">Bitte wählen</option>
-                            <option value="m">Männlich</option>
-                            <option value="w">Weiblich</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="distance">Strecke *</label>
-                    <select id="distance" name="distance" required onchange="updatePrice()">
-                        <option value="">Bitte wählen</option>
-                        <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
-                        <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
-                        <option value="kinderlauf">Kinderlauf bis U16, Start 17:30 Uhr – 7 EUR</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="club">Verein / Team (optional)</label>
-                    <input type="text" id="club" name="club">
-                </div>
+                <button type="button" class="add-participant-btn" onclick="addParticipant()">+ Weitere Person hinzufügen</button>
 
                 <div class="form-group checkbox-group">
                     <label>
                         <input type="checkbox" id="imageRights" name="imageRights" required>
-                        Ich stimme zu, dass der Veranstalter Fotos und Videos der Veranstaltung veröffentlichen darf, auf denen ich abgebildet sein kann. *
+                        Ich stimme zu, dass der Veranstalter Fotos und Videos der Veranstaltung veröffentlichen darf, auf denen alle angemeldeten Personen abgebildet sein können. *
                     </label>
                 </div>
 
@@ -104,18 +150,9 @@
                 <button type="submit" class="submit-btn" id="submit-btn">
                     Weiter zur Zahlung (15 EUR)
                 </button>
-                <script>
-                    function updatePrice() {
-                        const distance = document.getElementById('distance').value;
-                        const btn = document.getElementById('submit-btn');
-                        btn.textContent = distance === 'kinderlauf'
-                            ? 'Weiter zur Zahlung (7 EUR)'
-                            : 'Weiter zur Zahlung (15 EUR)';
-                    }
-                </script>
 
                 <p class="payment-note">
-                    Nach erfolgreicher Zahlung erhältst du eine Bestätigung per E-Mail.
+                    Nach erfolgreicher Zahlung wirst du zur Bestätigungsseite weitergeleitet.
                 </p>
             </form>
         </section>
