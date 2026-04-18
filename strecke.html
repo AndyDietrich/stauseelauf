@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strecke - Stauseelauf 2026</title>
+    <meta name="description" content="Streckenbeschreibung Stauseelauf 2026: Flache, naturnahe Runde um den Bad Wörishofer Stausee. 5,3 km, 10,6 km und Kinderlauf 1,8 km.">
+    <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .strecke-intro {
+            max-width: 660px;
+            margin: 0 auto 36px;
+            text-align: center;
+        }
+        .strecke-intro p {
+            font-size: 1.05rem;
+            color: var(--text-color);
+            line-height: 1.75;
+            margin-bottom: 12px;
+        }
+        .records-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 20px 0 0;
+            flex-wrap: wrap;
+        }
+        .record-badge {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 12px 20px;
+            text-align: center;
+        }
+        .record-badge .record-dist {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .record-badge .record-time {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .maps-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 740px;
+            margin: 0 auto;
+        }
+        .map-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .map-card img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+        .map-card-label {
+            padding: 14px 16px;
+            border-top: 1px solid #eee;
+        }
+        .map-card-label strong {
+            display: block;
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 3px;
+        }
+        .map-card-label span {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+        @media (max-width: 560px) {
+            .maps-grid {
+                grid-template-columns: 1fr;
+                max-width: 340px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <a href="/" class="nav-brand">
+                <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen" class="nav-logo">
+                Stauseelauf 2026
+            </a>
+            <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Start</a></li>
+                <li><a href="/registration">Anmeldung</a></li>
+                <li><a href="/strecke" class="active">Strecke</a></li>
+                <li id="nav-teilnehmer" class="hidden"><a href="/teilnehmerliste">Teilnehmerliste</a></li>
+                <li id="nav-ergebnisse" class="hidden"><a href="/ergebnisse">Ergebnisse</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header>
+        <div class="hero-image">
+            <img src="images/Stausee%20Drohenaufnahme%2008.2025.JPG" alt="Blick vom Stausee Bad Wörishofen – Startbereich Stauseelauf">
+        </div>
+        <div class="hero-content">
+            <h1>Die Strecke</h1>
+            <p class="subtitle">Stauseelauf 2026 – 7. August 2026</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="info-section">
+            <div class="strecke-intro">
+                <p>
+                    Start und Ziel direkt am Seglerheim am Stausee. Die flache, naturnahe Strecke führt
+                    auf Feld- und Wiesenwegen mit Blick auf das Wasser – ein landschaftlich wunderschöner Lauf
+                    in entspannter Atmosphäre.
+                </p>
+                <p>
+                    Im Zielbereich erwartet euch Musik, Moderation und eine tolle Stimmung.
+                </p>
+
+                <div class="records-row">
+                    <div class="record-badge">
+                        <span class="record-dist">Streckenrekord 5,3 km</span>
+                        <span class="record-time">16:55 min</span>
+                    </div>
+                    <div class="record-badge">
+                        <span class="record-dist">Streckenrekord 10,6 km</span>
+                        <span class="record-time">35:01 min</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="maps-grid">
+                <div class="map-card">
+                    <img src="images/StauseelaufStreckeRunde.png" alt="Streckenkarte 5,3 km und 10,6 km Stauseelauf">
+                    <div class="map-card-label">
+                        <strong>5,3 km &amp; 10,6 km</strong>
+                        <span>1 oder 2 Runden um den See – Start 18:00 Uhr</span>
+                    </div>
+                </div>
+                <div class="map-card">
+                    <img src="images/KinderlaufStrecke.png" alt="Streckenkarte Kinderlauf 1,8 km">
+                    <div class="map-card-label">
+                        <strong>Kinderlauf 1,8 km</strong>
+                        <span>Entlang der Seepromenade – Start 17:30 Uhr</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TSV Bad Wörishofen - Leichtathletik</p>
+            <p>
+                <a href="https://www.tsv-bw.de" target="_blank">www.tsv-bw.de</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
