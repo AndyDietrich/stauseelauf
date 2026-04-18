@@ -224,7 +224,7 @@ body {
 
 .event-details-card h2 {
     color: var(--primary-color);
-    font-size: 1.2rem;
+    font-size: 1.35rem;
     margin-bottom: 20px;
     font-weight: 600;
 }
@@ -742,7 +742,7 @@ footer p {
 }
 
 .race-distance {
-    font-size: 1.15rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary-color);
     display: flex;
@@ -764,7 +764,7 @@ footer p {
 }
 
 .race-price {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--primary-color);
 }
@@ -797,6 +797,65 @@ footer p {
     color: var(--text-light);
     margin-bottom: 24px;
     text-align: center;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.info-col {
+    padding: 16px;
+    border-radius: 10px;
+}
+
+.info-col--included {
+    background: #f0f7f4;
+}
+
+.info-col--notes {
+    background: #f5f5f5;
+}
+
+.info-col-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+    color: var(--text-light);
+}
+
+.info-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-col li {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    padding: 4px 0;
+    line-height: 1.4;
+}
+
+.info-col--included li::before {
+    content: "✓ ";
+    color: #2a9d5c;
+    font-weight: 700;
+}
+
+.info-col--notes li::before {
+    content: "→ ";
+    color: var(--text-light);
+}
+
+@media (max-width: 500px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Page-specific: hide/show based on navigation */
