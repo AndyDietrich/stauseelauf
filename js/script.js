@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
+        if (new URLSearchParams(window.location.search).get('testmode') === '1') {
+            document.querySelectorAll('.test-option').forEach(o => o.style.display = '');
+        }
         // Setup divers hint for the first (static) participant card
         const firstCard = document.querySelector('.participant-card');
         if (firstCard) {
@@ -128,6 +131,7 @@ function addParticipant() {
                 <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
                 <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
                 <option value="kinderlauf">Schülerlauf bis U14, Start 17:30 Uhr – 7 EUR</option>
+                <option value="test" class="test-option" style="display:none">Testlauf (0,50 EUR) – nur zum Testen</option>
             </select>
         </div>
         <div class="form-group">
@@ -156,6 +160,7 @@ function updateTotalPrice() {
     let total = 0;
     selects.forEach(sel => {
         if (sel.value === 'kinderlauf') total += 7;
+        else if (sel.value === 'test') total += 0.5;
         else if (sel.value) total += 15;
     });
     const btn = document.getElementById('submit-btn');
@@ -605,7 +610,7 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     const cx = canvas.width * 0.70;
     const colorDark = '#04368b';
     const colorMid  = '#444444';
-    const streckeText = strecke === 'kinderlauf' ? 'Schülerlauf (U14)' : strecke.includes('10') ? '10,6 km' : '5,3 km';
+    const streckeText = strecke === 'kinderlauf' ? 'Schülerlauf (U14)' : strecke === 'test' ? 'Testlauf' : strecke.includes('10') ? '10,6 km' : '5,3 km';
 
     // Zeilen mit individuellem Abstand
     const lines = [];

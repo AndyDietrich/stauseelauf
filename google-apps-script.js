@@ -14,6 +14,7 @@ const CANCEL_URL = 'https://kneipp-run.de/registration?error=cancelled';
 // Prices in cents
 const PRICE_CENTS_DEFAULT = 1500; // 15 EUR
 const PRICE_CENTS_KINDERLAUF = 700; // 7 EUR
+const PRICE_CENTS_TEST = 50; // 0,50 EUR – nur zum Testen
 
 // Race Day for age calculation
 const RACE_DATE = new Date(2026, 7, 7); // August 7, 2026 (month is 0-indexed)
@@ -218,8 +219,9 @@ function createStripeCheckoutSession(participants, email, orderId) {
 
   participants.forEach(function(p, i) {
     const isKinderlauf = p.distance === 'kinderlauf';
-    const distanceLabel = isKinderlauf ? 'Schülerlauf (U14)' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
-    const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : PRICE_CENTS_DEFAULT;
+    const isTest = p.distance === 'test';
+    const distanceLabel = isKinderlauf ? 'Schülerlauf (U14)' : isTest ? 'TEST' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
+    const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : isTest ? PRICE_CENTS_TEST : PRICE_CENTS_DEFAULT;
 
     payload['line_items[' + i + '][price_data][currency]'] = 'eur';
     payload['line_items[' + i + '][price_data][unit_amount]'] = String(priceCents);
