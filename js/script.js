@@ -236,6 +236,12 @@ function validateForm() {
             by.classList.add('error'); isValid = false;
         } else {
             by.classList.remove('error');
+            const distance = card.querySelector('[name="distance"]').value;
+            if (distance === 'kinderlauf' && year < 2010) {
+                by.classList.add('error');
+                showError('Der Kinderlauf ist für Teilnehmer bis U16 (Jahrgang 2010 oder jünger).');
+                isValid = false;
+            }
         }
     });
 
