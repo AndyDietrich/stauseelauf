@@ -218,7 +218,7 @@ function createStripeCheckoutSession(participants, email, orderId) {
 
   participants.forEach(function(p, i) {
     const isKinderlauf = p.distance === 'kinderlauf';
-    const distanceLabel = isKinderlauf ? 'Kinderlauf (U16)' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
+    const distanceLabel = isKinderlauf ? 'Schülerlauf (U14)' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
     const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : PRICE_CENTS_DEFAULT;
 
     payload['line_items[' + i + '][price_data][currency]'] = 'eur';

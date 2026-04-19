@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
+        // Setup divers hint for the first (static) participant card
+        const firstCard = document.querySelector('.participant-card');
+        if (firstCard) {
+            const genderSel = firstCard.querySelector('[name="gender"]');
+            if (genderSel) genderSel.setAttribute('onchange', 'updateDiversHint(this)');
+        }
     }
 
     // Teilnehmerliste page
@@ -71,6 +77,11 @@ async function checkPublishStatus() {
 // ============================================
 // MULTI-TEILNEHMER
 // ============================================
+function updateDiversHint(select) {
+    const hint = select.closest('.form-group').querySelector('.divers-hint');
+    if (hint) hint.style.display = select.value === 'd' ? 'block' : 'none';
+}
+
 function addParticipant() {
     const container = document.getElementById('participants-container');
     const index = container.querySelectorAll('.participant-card').length;
@@ -95,15 +106,17 @@ function addParticipant() {
         <div class="form-row">
             <div class="form-group">
                 <label>Jahrgang *</label>
-                <input type="number" name="birthYear" min="1920" max="2020" placeholder="z.B. 1990" required>
+                <input type="number" name="birthYear" min="1920" max="2024" placeholder="z.B. 1990" required>
             </div>
             <div class="form-group">
                 <label>Geschlecht *</label>
-                <select name="gender" required>
+                <select name="gender" required onchange="updateDiversHint(this)">
                     <option value="">Bitte wählen</option>
                     <option value="m">Männlich</option>
                     <option value="w">Weiblich</option>
+                    <option value="d">Divers</option>
                 </select>
+                <p class="divers-hint" style="display:none; margin: 4px 0 0; font-size: 0.85rem; color: #666;">Nach DLV-Standard wird in der Männer-Altersklasse gewertet.</p>
             </div>
         </div>
         <div class="form-group">
@@ -112,7 +125,7 @@ function addParticipant() {
                 <option value="">Bitte wählen</option>
                 <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
                 <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
-                <option value="kinderlauf">Kinderlauf bis U16, Start 17:30 Uhr – 7 EUR</option>
+                <option value="kinderlauf">Schülerlauf bis U14, Start 17:30 Uhr – 7 EUR</option>
             </select>
         </div>
         <div class="form-group">
@@ -237,9 +250,9 @@ function validateForm() {
         } else {
             by.classList.remove('error');
             const distance = card.querySelector('[name="distance"]').value;
-            if (distance === 'kinderlauf' && year < 2010) {
+            if (distance === 'kinderlauf' && year < 2012) {
                 by.classList.add('error');
-                showError('Der Kinderlauf ist für Teilnehmer bis U16 (Jahrgang 2010 oder jünger).');
+                showError('Der Schülerlauf ist für Teilnehmer bis U14 (Jahrgang 2012 oder jünger).');
                 isValid = false;
             }
         }
@@ -590,7 +603,7 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     const cx = canvas.width * 0.70;
     const colorDark = '#04368b';
     const colorMid  = '#444444';
-    const streckeText = strecke === 'kinderlauf' ? 'Kinderlauf (U16)' : strecke.includes('10') ? '10,6 km' : '5,3 km';
+    const streckeText = strecke === 'kinderlauf' ? 'Schülerlauf (U14)' : strecke.includes('10') ? '10,6 km' : '5,3 km';
 
     // Zeilen mit individuellem Abstand
     const lines = [];

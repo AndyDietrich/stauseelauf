@@ -153,8 +153,8 @@
     <script>
         const data = JSON.parse(sessionStorage.getItem('registrationData') || 'null');
         if (data) {
-            const distanceLabel = d => d === 'kinderlauf' ? 'Kinderlauf (U16)' : d === '10.6km' ? '10,6 km' : '5,3 km';
-            const genderLabel = g => g === 'w' ? 'Weiblich' : 'Männlich';
+            const distanceLabel = d => d === 'kinderlauf' ? 'Schülerlauf (U14)' : d === '10.6km' ? '10,6 km' : '5,3 km';
+            const genderLabel = g => g === 'w' ? 'Weiblich' : g === 'd' ? 'Divers' : 'Männlich';
 
             let html = `<p style="font-weight:600;color:#1a5f7a;margin-bottom:12px;">Angemeldete Personen</p>`;
             html += `<p style="margin-bottom:12px;color:#444;"><strong>E-Mail:</strong> ${data.email}</p>`;
