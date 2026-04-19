@@ -78,8 +78,10 @@ async function checkPublishStatus() {
 // MULTI-TEILNEHMER
 // ============================================
 function updateDiversHint(select) {
-    const hint = select.closest('.form-group').querySelector('.divers-hint');
-    if (hint) hint.style.display = select.value === 'd' ? 'block' : 'none';
+    const hint = select.nextElementSibling;
+    if (hint && hint.classList.contains('divers-hint')) {
+        hint.style.display = select.value === 'd' ? 'block' : 'none';
+    }
 }
 
 function addParticipant() {
