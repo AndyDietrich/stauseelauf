@@ -1,0 +1,9 @@
+{
+  "name": "stripe-webhook",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^140.0.0"
+  }
+}
