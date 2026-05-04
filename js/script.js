@@ -2,6 +2,8 @@ const CONFIG = {
     APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxDAMR_FixqdBtCTsahEDnYcES7e0luNaM8WWihaoOQltthoS7bJbpb2pU_nBFlACNd/exec'
 };
 
+let isMemberMode = false;
+
 // Urkundenhintergrund als Blob laden (vermeidet Canvas-Tainting / CORS-Probleme)
 const certificateBg = new Image();
 fetch('images/Muster_Urkunde2026.jpg')
@@ -21,8 +23,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
-        if (new URLSearchParams(window.location.search).get('testmode') === '1') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('testmode') === '1') {
             document.querySelectorAll('.test-option').forEach(o => o.style.display = '');
+        }
+        if (urlParams.get('mitglied') === '1') {
+            isMemberMode = true;
+            activateMemberMode();
         }
         // Setup divers hint for the first (static) participant card
         const firstCard = document.querySelector('.participant-card');
@@ -80,6 +87,32 @@ async function checkPublishStatus() {
 // ============================================
 // MULTI-TEILNEHMER
 // ============================================
+// ============================================
+// MITGLIEDS-MODUS
+// ============================================
+function applyMemberModeToCard(card) {
+    card.querySelectorAll('select[name="distance"] option').forEach(opt => {
+        if (opt.value === '5.3km')      opt.textContent = '5,3 km (1x um den See)';
+        else if (opt.value === '10.6km') opt.textContent = '10,6 km (2x um den See)';
+        else if (opt.value === 'kinderlauf') opt.textContent = 'Schülerlauf bis U14, Start 17:30 Uhr';
+    });
+}
+
+function activateMemberMode() {
+    const banner = document.getElementById('member-banner');
+    if (banner) banner.style.display = 'block';
+
+    document.querySelectorAll('.participant-card').forEach(card => applyMemberModeToCard(card));
+
+    const priceInfo = document.querySelector('.price-info');
+    if (priceInfo) priceInfo.style.display = 'none';
+
+    const paymentNote = document.querySelector('.payment-note');
+    if (paymentNote) paymentNote.textContent = 'Deine Anmeldung wird direkt bestätigt – keine Zahlung erforderlich.';
+
+    updateTotalPrice();
+}
+
 function updateDiversHint(select) {
     const hint = select.nextElementSibling;
     if (hint && hint.classList.contains('divers-hint')) {
@@ -140,6 +173,7 @@ function addParticipant() {
         </div>
     `;
     container.appendChild(card);
+    if (isMemberMode) applyMemberModeToCard(card);
     renumberCards();
 }
 
@@ -156,6 +190,11 @@ function renumberCards() {
 }
 
 function updateTotalPrice() {
+    const btn = document.getElementById('submit-btn');
+    if (isMemberMode) {
+        if (btn) btn.textContent = 'Kostenlos anmelden (TSV-Mitglied)';
+        return;
+    }
     const selects = document.querySelectorAll('#participants-container select[name="distance"]');
     let total = 0;
     selects.forEach(sel => {
@@ -163,7 +202,6 @@ function updateTotalPrice() {
         else if (sel.value === 'test') total += 0.5;
         else if (sel.value) total += 15;
     });
-    const btn = document.getElementById('submit-btn');
     if (btn) btn.textContent = `Weiter zur Zahlung (${total} EUR)`;
 }
 
@@ -191,6 +229,11 @@ async function handleFormSubmit(e) {
 
     const email = document.getElementById('email').value.trim();
     const participants = getParticipants();
+
+    if (isMemberMode) {
+        await handleMemberSubmit(email, participants);
+        return;
+    }
 
     try {
         const params = new URLSearchParams({
@@ -220,6 +263,31 @@ async function handleFormSubmit(e) {
         setLoading(false);
         showError('Verbindungsfehler. Bitte versuche es erneut.');
         console.error('Checkout error:', error);
+    }
+}
+
+async function handleMemberSubmit(email, participants) {
+    try {
+        const params = new URLSearchParams({
+            action: 'registerMember',
+            email: email,
+            participants: JSON.stringify(participants)
+        });
+
+        const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?' + params.toString());
+        const result = await response.json();
+
+        if (result.success) {
+            sessionStorage.setItem('registrationData', JSON.stringify({ email, participants }));
+            window.location.href = '/success';
+        } else {
+            setLoading(false);
+            showError('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        setLoading(false);
+        showError('Verbindungsfehler. Bitte versuche es erneut.');
+        console.error('Member registration error:', error);
     }
 }
 

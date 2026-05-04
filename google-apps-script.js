@@ -43,6 +43,11 @@ function doGet(e) {
       return handleCreateCheckout(e.parameter);
     }
 
+    // Free registration for TSV members
+    if (action === 'registerMember') {
+      return handleMemberRegistration(e.parameter);
+    }
+
     return jsonResponse({ error: 'Unknown action' });
 
   } catch (error) {
@@ -151,6 +156,51 @@ function handleStatusRequest() {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   const status = sheet.getRange(PUBLISH_CELL).getValue() || 'FALSE';
   return jsonResponse({ status: status });
+}
+
+// ============================================
+// MEMBER REGISTRATION (kostenfrei)
+// ============================================
+
+function handleMemberRegistration(params) {
+  if (!params.email || !params.participants) {
+    return jsonResponse({ error: 'missing_fields' });
+  }
+
+  let participants;
+  try {
+    participants = JSON.parse(params.participants);
+  } catch (e) {
+    return jsonResponse({ error: 'invalid_participants' });
+  }
+
+  if (!participants.length) {
+    return jsonResponse({ error: 'no_participants' });
+  }
+
+  const email = params.email;
+  const orderId = 'MITGLIED-' + Date.now();
+
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  participants.forEach(function(p) {
+    sheet.appendRow([
+      new Date().toLocaleString('de-DE'), // Timestamp
+      p.firstName,                         // Vorname
+      p.lastName,                          // Nachname
+      email,                               // E-Mail
+      p.birthYear || '',                   // Jahrgang
+      p.gender || '',                      // Geschlecht
+      p.distance || '',                    // Strecke
+      p.club || '-',                       // Verein
+      'Bezahlt',                           // Status
+      orderId,                             // OrderID
+      'Mitglied',                          // Payment ID
+      ''                                   // Startnummer
+    ]);
+  });
+
+  Logger.log('Mitglieds-Anmeldung: ' + orderId + ' (' + participants.length + ' Teilnehmer)');
+  return jsonResponse({ success: true });
 }
 
 // ============================================
