@@ -84,6 +84,26 @@
                 max-width: 340px;
             }
         }
+        .video-section {
+            max-width: 740px;
+            margin: 40px auto 0;
+        }
+        .video-section h2 {
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+        .video-wrapper {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .video-wrapper video {
+            width: 100%;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -142,6 +162,15 @@
                         <strong>Schülerlauf 1,8 km</strong>
                         <span>Direkt am Seeufer – Start 17:30 Uhr</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="video-section">
+                <h2>Die Strecke im Video</h2>
+                <div class="video-wrapper">
+                    <video controls preload="none" poster="images/Stausee%20Drohenaufnahme%2008.2025.JPG">
+                        <source src="images/Stausee_web.mp4" type="video/mp4">
+                    </video>
                 </div>
             </div>
         </section>
