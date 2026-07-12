@@ -102,6 +102,9 @@ function activateMemberMode() {
     const banner = document.getElementById('member-banner');
     if (banner) banner.style.display = 'block';
 
+    const donationBlock = document.getElementById('spomio-donation-block');
+    if (donationBlock) donationBlock.style.display = 'none';
+
     document.querySelectorAll('.participant-card').forEach(card => applyMemberModeToCard(card));
 
     const priceInfo = document.querySelector('.price-info');
@@ -189,6 +192,27 @@ function renumberCards() {
     });
 }
 
+function getDonationCents() {
+    const custom = document.getElementById('donation-custom');
+    if (custom && custom.value) {
+        const val = parseFloat(custom.value);
+        if (!isNaN(val) && val >= 1) return Math.round(val * 100);
+    }
+    const checked = document.querySelector('input[name="donation"]:checked');
+    return checked ? parseInt(checked.value) : 0;
+}
+
+function onDonationRadioChange() {
+    const custom = document.getElementById('donation-custom');
+    if (custom) custom.value = '';
+    updateTotalPrice();
+}
+
+function onDonationCustomInput() {
+    document.querySelectorAll('input[name="donation"]').forEach(r => r.checked = false);
+    updateTotalPrice();
+}
+
 function updateTotalPrice() {
     const btn = document.getElementById('submit-btn');
     if (isMemberMode) {
@@ -202,7 +226,9 @@ function updateTotalPrice() {
         else if (sel.value === 'test') total += 0.5;
         else if (sel.value) total += 15;
     });
-    if (btn) btn.textContent = `Weiter zur Zahlung (${total} EUR)`;
+    const donationEur = getDonationCents() / 100;
+    const donationLabel = donationEur > 0 ? ` + ${donationEur} EUR Spende` : '';
+    if (btn) btn.textContent = `Weiter zur Zahlung (${total} EUR${donationLabel})`;
 }
 
 function getParticipants() {
@@ -239,7 +265,8 @@ async function handleFormSubmit(e) {
         const params = new URLSearchParams({
             action: 'createCheckout',
             email: email,
-            participants: JSON.stringify(participants)
+            participants: JSON.stringify(participants),
+            donation: String(getDonationCents())
         });
 
         const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?' + params.toString());

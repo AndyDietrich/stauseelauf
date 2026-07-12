@@ -979,3 +979,143 @@ footer p {
         width: 100%;
     }
 }
+
+/* ============================================
+   SPOMIO DONATION STYLES
+   ============================================ */
+
+/* Banner on homepage */
+.spomio-banner {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #009ea0;
+    padding: 24px 28px;
+    margin: 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.spomio-banner-logo {
+    width: 90px;
+    height: auto;
+    flex-shrink: 0;
+}
+
+.spomio-banner-text {
+    flex: 1;
+}
+
+.spomio-banner-text h2 {
+    font-size: 1.05rem;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.spomio-banner-text p {
+    font-size: 0.88rem;
+    color: var(--text-light);
+    margin: 0;
+    line-height: 1.55;
+}
+
+.spomio-banner-btn {
+    display: inline-block;
+    background: #009ea0;
+    color: white;
+    font-weight: 700;
+    padding: 11px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.88rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.spomio-banner-btn:hover {
+    background: #007a7c;
+}
+
+@media (max-width: 600px) {
+    .spomio-banner {
+        flex-wrap: wrap;
+        border-left: none;
+        border-top: 4px solid #009ea0;
+        gap: 16px;
+    }
+    .spomio-banner-logo {
+        width: 70px;
+    }
+    .spomio-banner-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Donation block inside registration form */
+.spomio-donation-block {
+    border: 2px solid #009ea0;
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 22px;
+    background: #f0fafa;
+}
+
+.spomio-donation-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.spomio-donation-logo {
+    width: 55px;
+    height: auto;
+    flex-shrink: 0;
+}
+
+.spomio-donation-header h3 {
+    font-size: 1rem;
+    color: #007a7c;
+    margin-bottom: 2px;
+}
+
+.spomio-donation-header p {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0;
+}
+
+.donation-amounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.donation-option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: white;
+    border: 1px solid #c8e8e8;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+}
+
+.donation-option:has(input:checked) {
+    border-color: #009ea0;
+    background: #e0f5f5;
+    font-weight: 600;
+}
+
+.donation-option input[type="radio"] {
+    accent-color: #009ea0;
+    cursor: pointer;
+}
+

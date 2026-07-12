@@ -3,6 +3,7 @@ const { google } = require('googleapis');
 
 const SPREADSHEET_ID = '1aRfbY4shiAEZWpvK6JPkQsR4rbn_rbyhLysrpwH01UM';
 const SHEET_NAME = 'Teilnehmer';
+const DONATIONS_SHEET_NAME = 'Spenden';
 
 exports.stripeWebhook = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -15,18 +16,33 @@ exports.stripeWebhook = async (req, res) => {
     }
 
     const session = event.data.object;
-    const orderId = session.metadata?.orderId;
     const paymentIntent = session.payment_intent;
-
-    if (!orderId) {
-      return res.status(200).json({ received: true, no_order: true });
-    }
-
     const auth = new GoogleAuth({
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const sheets = google.sheets({ version: 'v4', auth });
 
+    // Standalone donation (from /spende page)
+    if (session.metadata?.type === 'spende') {
+      const amountEur = ((session.amount_total || 0) / 100).toFixed(2);
+      await appendDonationRow(sheets, {
+        email: session.customer_email || session.metadata?.email || '',
+        name: session.metadata?.name || 'Anonym',
+        amountEur,
+        source: 'Direkt',
+        refId: session.metadata?.donationId || '',
+        paymentIntent,
+      });
+      console.log(`Spomio-Spende (direkt): ${amountEur} EUR`);
+      return res.status(200).json({ received: true, donation: true });
+    }
+
+    const orderId = session.metadata?.orderId;
+    if (!orderId) {
+      return res.status(200).json({ received: true, no_order: true });
+    }
+
+    // Update participant rows to "Bezahlt"
     const result = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_NAME}!A:K`,
@@ -52,6 +68,22 @@ exports.stripeWebhook = async (req, res) => {
     }
 
     console.log(`Order ${orderId}: ${updates.length} row(s) updated to Bezahlt`);
+
+    // Optional add-on donation during registration
+    const donationCents = parseInt(session.metadata?.donation || '0');
+    if (donationCents > 0) {
+      const amountEur = (donationCents / 100).toFixed(2);
+      await appendDonationRow(sheets, {
+        email: session.customer_email || session.metadata?.email || '',
+        name: '',
+        amountEur,
+        source: 'Anmeldung',
+        refId: orderId,
+        paymentIntent,
+      });
+      console.log(`Spomio-Spende (mit Anmeldung): ${amountEur} EUR, Order ${orderId}`);
+    }
+
     return res.status(200).json({ received: true, updated: updates.length });
 
   } catch (err) {
@@ -60,3 +92,16 @@ exports.stripeWebhook = async (req, res) => {
     return res.status(200).json({ received: true, error: err.message });
   }
 };
+
+async function appendDonationRow(sheets, { email, name, amountEur, source, refId, paymentIntent }) {
+  const timestamp = new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' });
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${DONATIONS_SHEET_NAME}!A:G`,
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: {
+      values: [[timestamp, name, email, amountEur, source, refId, paymentIntent]],
+    },
+  });
+}

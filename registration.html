@@ -140,6 +140,34 @@
 
                 <button type="button" class="add-participant-btn" onclick="addParticipant()">+ Weitere Person hinzufügen</button>
 
+                <div class="spomio-donation-block" id="spomio-donation-block">
+                    <div class="spomio-donation-header">
+                        <img src="images/spomio-logo.png" alt="Spomio e.V. Mindelheim" class="spomio-donation-logo">
+                        <div>
+                            <h3>Für Spomio e.V. Mindelheim spenden?</h3>
+                            <p>Inklusionsverein für Kinder mit und ohne Behinderung</p>
+                        </div>
+                    </div>
+                    <div class="donation-amounts">
+                        <label class="donation-option">
+                            <input type="radio" name="donation" value="0" checked onchange="onDonationRadioChange()"> Keine Spende
+                        </label>
+                        <label class="donation-option">
+                            <input type="radio" name="donation" value="200" onchange="onDonationRadioChange()"> + 2 EUR
+                        </label>
+                        <label class="donation-option">
+                            <input type="radio" name="donation" value="500" onchange="onDonationRadioChange()"> + 5 EUR
+                        </label>
+                        <label class="donation-option">
+                            <input type="radio" name="donation" value="1000" onchange="onDonationRadioChange()"> + 10 EUR
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                        <label for="donation-custom">Eigener Betrag (EUR)</label>
+                        <input type="number" id="donation-custom" min="1" max="9999" placeholder="5" oninput="onDonationCustomInput()">
+                    </div>
+                </div>
+
                 <div class="form-group checkbox-group">
                     <label>
                         <input type="checkbox" id="imageRights" name="imageRights" required>

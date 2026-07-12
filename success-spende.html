@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vielen Dank! – Stauseelauf 2026</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .thanks-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .thanks-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .thanks-card {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .thanks-icon {
+            width: 80px;
+            height: 80px;
+            background: #009ea0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .thanks-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+        .thanks-card h1 {
+            color: #007a7c;
+            font-size: 1.8rem;
+            margin-bottom: 14px;
+        }
+        .thanks-card p {
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 14px;
+        }
+        .thanks-logo {
+            width: 120px;
+            margin: 20px auto;
+            display: block;
+        }
+        .thanks-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 28px;
+        }
+        .thanks-link-primary {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #009ea0;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .thanks-link-primary:hover { background: #007a7c; }
+        .thanks-link-secondary {
+            display: inline-block;
+            padding: 12px 28px;
+            background: none;
+            border: 2px solid #1a5f7a;
+            color: #1a5f7a;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .thanks-link-secondary:hover { background: rgba(26,95,122,0.05); }
+        @media (max-width: 520px) {
+            .thanks-card { padding: 32px 20px; }
+        }
+    </style>
+</head>
+<body class="thanks-page">
+    <header style="padding: 24px 20px; background: var(--bg-light); text-align: center;">
+        <a href="/" style="text-decoration:none;">
+            <p style="font-weight:700; font-size:1.1rem; color:var(--text-color); margin:0;">Stauseelauf 2026 · TSV Bad Wörishofen</p>
+        </a>
+    </header>
+
+    <main class="thanks-content">
+        <div class="thanks-card">
+            <div class="thanks-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+            </div>
+            <h1>Herzlichen Dank!</h1>
+            <p>Deine Spende ist bei uns eingegangen und wird direkt an <strong>Spomio e.V. Mindelheim</strong> weitergeleitet.</p>
+            <img src="images/spomio-logo.png" alt="Spomio e.V. Mindelheim" class="thanks-logo">
+            <p>Du unterstützt damit Kinder mit und ohne Behinderung bei gemeinsamen Sport- und Freizeiterlebnissen – herzlichen Dank für dieses tolle Engagement!</p>
+
+            <div class="thanks-links">
+                <a href="/registration" class="thanks-link-primary">Jetzt für den Stauseelauf anmelden</a>
+                <a href="/" class="thanks-link-secondary">Zur Startseite</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TSV Bad Wörishofen - Leichtathletik</p>
+            <p>
+                <a href="https://www.tsv-bw.de" target="_blank">www.tsv-bw.de</a>
+                &nbsp;·&nbsp;
+                <a href="https://www.tsv-bw.de/impressum/" target="_blank">Impressum</a>
+                &nbsp;·&nbsp;
+                <a href="https://www.tsv-bw.de/datenschutz/" target="_blank">Datenschutz</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

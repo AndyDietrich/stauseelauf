@@ -10,6 +10,8 @@ const STRIPE_WEBHOOK_SECRET = ''; // Optional: Add webhook signing secret for pr
 // Website URLs
 const SUCCESS_URL = 'https://kneipp-run.de/success';
 const CANCEL_URL = 'https://kneipp-run.de/registration?error=cancelled';
+const DONATE_SUCCESS_URL = 'https://kneipp-run.de/success-spende';
+const DONATE_CANCEL_URL = 'https://kneipp-run.de/spende?error=cancelled';
 
 // Prices in cents
 const PRICE_CENTS_DEFAULT = 1500; // 15 EUR
@@ -46,6 +48,11 @@ function doGet(e) {
     // Free registration for TSV members
     if (action === 'registerMember') {
       return handleMemberRegistration(e.parameter);
+    }
+
+    // Standalone donation for Spomio e.V.
+    if (action === 'createDonation') {
+      return handleCreateDonation(e.parameter);
     }
 
     return jsonResponse({ error: 'Unknown action' });
@@ -204,6 +211,67 @@ function handleMemberRegistration(params) {
 }
 
 // ============================================
+// STANDALONE DONATION HANDLER (Spomio e.V.)
+// ============================================
+
+function handleCreateDonation(params) {
+  const amount = parseInt(params.amount || '0');
+  if (amount < 100) {
+    return jsonResponse({ error: 'invalid_amount' });
+  }
+
+  const email = params.email || '';
+  const name = params.name || 'Anonym';
+  const donationId = 'spende_' + Date.now();
+
+  try {
+    const url = 'https://api.stripe.com/v1/checkout/sessions';
+    const amountEur = (amount / 100).toFixed(2).replace('.', ',');
+
+    const payload = {
+      'mode': 'payment',
+      'success_url': DONATE_SUCCESS_URL,
+      'cancel_url': DONATE_CANCEL_URL,
+      'metadata[type]': 'spende',
+      'metadata[donationId]': donationId,
+      'metadata[name]': name,
+      'metadata[email]': email,
+      'line_items[0][price_data][currency]': 'eur',
+      'line_items[0][price_data][unit_amount]': String(amount),
+      'line_items[0][price_data][product_data][name]': 'Spende Spomio e.V. Mindelheim',
+      'line_items[0][price_data][product_data][description]': amountEur + ' EUR – Inklusionsverein für Kinder mit und ohne Behinderung',
+      'line_items[0][quantity]': '1'
+    };
+
+    if (email) {
+      payload['customer_email'] = email;
+    }
+
+    const response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      headers: {
+        'Authorization': 'Bearer ' + STRIPE_SECRET_KEY,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      payload: payload,
+      muteHttpExceptions: true
+    });
+
+    const result = JSON.parse(response.getContentText());
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    Logger.log('Spomio-Spende erstellt: ' + donationId + ' (' + amount + ' Cent)');
+    return jsonResponse({ checkoutUrl: result.url });
+
+  } catch (error) {
+    Logger.log('Stripe Spende Fehler: ' + error.message);
+    return jsonResponse({ error: error.message });
+  }
+}
+
+// ============================================
 // STRIPE CHECKOUT HANDLER
 // ============================================
 
@@ -223,6 +291,11 @@ function handleCreateCheckout(params) {
     return jsonResponse({ error: 'no_participants' });
   }
 
+  if (participants.length > 7) {
+    return jsonResponse({ error: 'too_many_participants' });
+  }
+
+  const donation = parseInt(params.donation || '0');
   const email = params.email;
   const orderId = 'order_' + Date.now();
 
@@ -246,7 +319,7 @@ function handleCreateCheckout(params) {
   });
 
   try {
-    const checkoutUrl = createStripeCheckoutSession(participants, email, orderId);
+    const checkoutUrl = createStripeCheckoutSession(participants, email, orderId, donation);
     return jsonResponse({ checkoutUrl: checkoutUrl });
   } catch (error) {
     Logger.log('Stripe error: ' + error.message);
@@ -254,8 +327,9 @@ function handleCreateCheckout(params) {
   }
 }
 
-function createStripeCheckoutSession(participants, email, orderId) {
+function createStripeCheckoutSession(participants, email, orderId, donation) {
   const url = 'https://api.stripe.com/v1/checkout/sessions';
+  donation = donation || 0;
 
   const payload = {
     'mode': 'payment',
@@ -264,7 +338,8 @@ function createStripeCheckoutSession(participants, email, orderId) {
     'customer_email': email,
     'metadata[orderId]': orderId,
     'metadata[email]': email,
-    'metadata[count]': String(participants.length)
+    'metadata[count]': String(participants.length),
+    'metadata[donation]': String(donation)
   };
 
   participants.forEach(function(p, i) {
@@ -278,7 +353,26 @@ function createStripeCheckoutSession(participants, email, orderId) {
     payload['line_items[' + i + '][price_data][product_data][name]'] = 'Stauseelauf 2026 - ' + distanceLabel;
     payload['line_items[' + i + '][price_data][product_data][description]'] = p.firstName + ' ' + p.lastName;
     payload['line_items[' + i + '][quantity]'] = '1';
+
+    // Alle Teilnehmerdaten als Stripe-Metadata → Fallback falls Sheet-Eintrag fehlschlägt
+    payload['metadata[p' + i + '_firstName]'] = p.firstName;
+    payload['metadata[p' + i + '_lastName]'] = p.lastName;
+    payload['metadata[p' + i + '_birthYear]'] = String(p.birthYear || '');
+    payload['metadata[p' + i + '_gender]'] = p.gender || '';
+    payload['metadata[p' + i + '_distance]'] = p.distance || '';
+    payload['metadata[p' + i + '_club]'] = p.club || '';
   });
+
+  // Optional Spomio donation as extra line item
+  if (donation > 0) {
+    const idx = participants.length;
+    const donationEur = (donation / 100).toFixed(2).replace('.', ',');
+    payload['line_items[' + idx + '][price_data][currency]'] = 'eur';
+    payload['line_items[' + idx + '][price_data][unit_amount]'] = String(donation);
+    payload['line_items[' + idx + '][price_data][product_data][name]'] = 'Spende Spomio e.V. Mindelheim';
+    payload['line_items[' + idx + '][price_data][product_data][description]'] = donationEur + ' EUR – Inklusionsverein für Kinder mit und ohne Behinderung';
+    payload['line_items[' + idx + '][quantity]'] = '1';
+  }
 
   const response = UrlFetchApp.fetch(url, {
     method: 'post',
