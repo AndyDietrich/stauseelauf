@@ -15,7 +15,6 @@ const DONATE_CANCEL_URL = 'https://kneipp-run.de/spende?error=cancelled';
 
 // Prices in cents
 const PRICE_CENTS_DEFAULT = 1500; // 15 EUR
-const PRICE_CENTS_KINDERLAUF = 700; // 7 EUR
 const PRICE_CENTS_TEST = 50; // 0,50 EUR – nur zum Testen
 
 // Race Day for age calculation
@@ -343,10 +342,9 @@ function createStripeCheckoutSession(participants, email, orderId, donation) {
   };
 
   participants.forEach(function(p, i) {
-    const isKinderlauf = p.distance === 'kinderlauf';
     const isTest = p.distance === 'test';
-    const distanceLabel = isKinderlauf ? 'Schülerlauf (U14)' : isTest ? 'TEST' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
-    const priceCents = isKinderlauf ? PRICE_CENTS_KINDERLAUF : isTest ? PRICE_CENTS_TEST : PRICE_CENTS_DEFAULT;
+    const distanceLabel = isTest ? 'TEST' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
+    const priceCents = isTest ? PRICE_CENTS_TEST : PRICE_CENTS_DEFAULT;
 
     payload['line_items[' + i + '][price_data][currency]'] = 'eur';
     payload['line_items[' + i + '][price_data][unit_amount]'] = String(priceCents);
@@ -574,7 +572,7 @@ function updatePreviewSheet() {
 
   // Calculate rankings
   const results = [];
-  const distances = ['5.3km', '10.6km', 'kinderlauf'];
+  const distances = ['5.3km', '10.6km'];
 
   distances.forEach(distance => {
     const distanceParticipants = participants.filter(p => p.strecke === distance);

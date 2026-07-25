@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeitnahme – Stauseelauf 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0d0d14;
+  color: #fff;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── RESTORE BANNER ── */
+#restore-banner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #0d2b1a;
+  border-bottom: 1px solid #00c853;
+  padding: 14px 24px;
+  z-index: 200;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 1rem;
+}
+#restore-banner button {
+  border: none; border-radius: 7px;
+  padding: 8px 20px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+}
+.btn-restore { background: #00c853; color: #000; }
+.btn-dismiss { background: #2a2a3e; color: #aaa; margin-left: 8px; }
+
+/* ── READY SCREEN ── */
+#ready-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 44px;
+}
+.ready-title {
+  font-size: 1rem;
+  color: #444;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.ready-clock {
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+  font-size: 8rem;
+  font-weight: 200;
+  color: #fff;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+.ready-clock .dim { color: #2a2a2a; }
+#start-btn {
+  background: #00c853;
+  color: #000;
+  border: none;
+  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
+  box-shadow: 0 0 70px rgba(0,200,83,0.2);
+}
+#start-btn:hover { background: #00e676; transform: scale(1.04); }
+#start-btn:active { transform: scale(0.96); }
+
+/* ── TWO-COLUMN LAYOUT ── */
+#app-layout {
+  display: none;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111118;
+  border-right: 1px solid #1a1a2e;
+  padding: 28px 24px 20px;
+}
+
+.panel-title {
+  font-size: 0.72rem;
+  color: #383848;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.clock-label {
+  font-size: 0.75rem;
+  color: #444;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#main-clock {
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+  font-size: 5.5rem;
+  font-weight: 200;
+  color: #00e676;
+  letter-spacing: -2px;
+  line-height: 1;
+  text-align: center;
+  margin-bottom: 28px;
+}
+#main-clock .dim { font-size: 3.5rem; color: #1a3a1a; }
+#main-clock.ended { color: #fff; }
+#main-clock.ended .dim { color: #333; }
+
+#split-btn {
+  display: block;
+  width: 100%;
+  background: #00c853;
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  padding: 24px;
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: transform 0.05s, background 0.08s;
+  margin-bottom: 12px;
+}
+#split-btn:hover { background: #00e676; }
+#split-btn:active { background: #fff; transform: scale(0.98); }
+#split-btn.flash { background: #fff; }
+#split-btn:disabled {
+  background: #1a1a2e;
+  color: #2a2a4e;
+  cursor: not-allowed;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  transform: none;
+}
+
+.key-hint {
+  font-size: 0.82rem;
+  color: #383848;
+  text-align: center;
+  margin-bottom: 28px;
+  line-height: 1.8;
+}
+kbd {
+  background: #1a1a2e;
+  border: 1px solid #252540;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.divider {
+  height: 1px;
+  background: #1a1a2e;
+  margin-bottom: 22px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.stat-num {
+  font-size: 2rem;
+  font-weight: 300;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+.stat-label { font-size: 1rem; color: #555; }
+#bib-status {
+  font-size: 0.9rem;
+  color: #444;
+  min-height: 1.3em;
+}
+#bib-status.complete { color: #00c853; }
+
+.spacer { flex: 1; }
+
+.bottom-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#copy-btn {
+  background: #1a3a5a;
+  color: #7ac8e8;
+  border: 1px solid #1e4a70;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-weight: 500;
+  text-align: center;
+}
+#copy-btn:hover { background: #1e4a70; }
+#copy-btn.success { background: #00c853; color: #000; border-color: #00c853; font-weight: 700; }
+
+#end-btn {
+  background: none;
+  border: 1px solid #1e1e30;
+  color: #444;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+#end-btn:hover { color: #ff8080; border-color: #552020; background: #1a0a0a; }
+#end-btn.confirm { color: #ff6b6b; border-color: #ff3333; background: #200a0a; font-weight: 600; }
+#end-btn.done { color: #00c853; border-color: #1a3a1a; cursor: default; }
+#end-btn.done:hover { background: none; color: #00c853; border-color: #1a3a1a; }
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.splits-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0f0f1a;
+}
+thead th {
+  padding: 13px 20px;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #383848;
+  border-bottom: 1px solid #1a1a2e;
+}
+tbody tr { border-bottom: 1px solid #111118; }
+tbody tr:hover { background: #13131e; }
+tbody tr.latest { background: #0a1f0a; }
+tbody tr.latest .td-time { color: #00e676; }
+tbody td {
+  padding: 11px 20px;
+  vertical-align: middle;
+  font-size: 1.05rem;
+}
+
+.td-rank {
+  color: #383848;
+  width: 56px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+.td-time {
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  color: #ccc;
+  width: 120px;
+}
+.td-gap {
+  color: #383848;
+  font-size: 0.88rem;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  width: 88px;
+}
+.td-bib { width: 150px; }
+.bib-input {
+  background: #1a1a2e;
+  border: 1px solid #252535;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.05rem;
+  padding: 7px 14px;
+  width: 120px;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.bib-input:focus {
+  outline: none;
+  border-color: #00c853;
+  background: #0a1f0a;
+}
+.bib-input.filled {
+  border-color: #1a3a1a;
+  color: #00e676;
+  background: #0a140a;
+}
+.td-del { width: 50px; text-align: center; }
+.del-btn {
+  background: none;
+  border: none;
+  color: #1e1e30;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 5px 9px;
+  border-radius: 5px;
+  transition: color 0.1s, background 0.1s;
+}
+.del-btn:hover { color: #ff6b6b; background: #2a0a0a; }
+
+.empty-state {
+  padding: 80px 30px;
+  text-align: center;
+  color: #252535;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+</style>
+</head>
+<body>
+
+<!-- RESTORE BANNER -->
+<div id="restore-banner">
+  <span id="restore-msg"></span>
+  <div>
+    <button class="btn-restore" onclick="restoreSession()">Wiederherstellen</button>
+    <button class="btn-dismiss" onclick="dismissRestore()">Neu starten</button>
+  </div>
+</div>
+
+<!-- READY SCREEN -->
+<div id="ready-screen">
+  <div class="ready-title">Stauseelauf 2026 · Zeitnahme</div>
+  <div class="ready-clock">00:00<span class="dim">.0</span></div>
+  <button id="start-btn" onclick="startTimer()">START</button>
+</div>
+
+<!-- RUNNING LAYOUT -->
+<div id="app-layout">
+
+  <!-- LEFT: clock & controls -->
+  <div class="left-panel">
+    <div class="panel-title">Stauseelauf 2026 · Zeitnahme</div>
+
+    <div class="clock-label" id="clock-label">Laufzeit</div>
+    <div id="main-clock">00:00<span class="dim">.0</span></div>
+
+    <button id="split-btn" onclick="recordSplit()">SPLIT</button>
+    <div class="key-hint">
+      <kbd>Leertaste</kbd> = immer Split &nbsp;·&nbsp; <kbd>Enter</kbd> = Split (außerhalb Eingabe)
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stat-row">
+      <span class="stat-num" id="split-count-num">0</span>
+      <span class="stat-label">Zieleinläufe</span>
+    </div>
+    <div id="bib-status"></div>
+
+    <div class="spacer"></div>
+
+    <div class="bottom-actions">
+      <button id="copy-btn" onclick="copyToClipboard()">📋 Für Sheets kopieren</button>
+      <button id="end-btn" onclick="handleEndBtn()">⏹ Lauf beenden</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: splits list -->
+  <div class="right-panel">
+    <div class="splits-scroll" id="splits-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Platz</th>
+            <th>Zeit</th>
+            <th>+ Abstand</th>
+            <th>Startnummer</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="splits-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state">
+        Noch keine Zieleinläufe<br>
+        Drücke <strong>SPLIT</strong> oder <strong>Leertaste</strong> wenn der erste Läufer die Linie überquert
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────
+// STATE
+// ─────────────────────────────────
+let startTime  = null;
+let endTime    = null;
+let splits     = [];
+let raceEnded  = false;
+let rafId      = null;
+let endConfirm = false;
+let endTimer   = null;
+
+// ─────────────────────────────────
+// FORMATTING
+// ─────────────────────────────────
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function fmtDisplay(ms) {
+  const s = Math.floor(ms / 1000);
+  const t = Math.floor((ms % 1000) / 100);
+  return pad(Math.floor(s / 60)) + ':' + pad(s % 60) + '.' + t;
+}
+
+function fmtExport(ms) {
+  const s = Math.floor(ms / 1000);
+  return pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) + ':' + pad(s % 60);
+}
+
+function fmtGap(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? '+' + m + ':' + pad(s % 60) : '+' + (s % 60) + 's';
+}
+
+// ─────────────────────────────────
+// CLOCK DISPLAY
+// ─────────────────────────────────
+function setClock(ms) {
+  const s = Math.floor(ms / 1000);
+  const t = Math.floor((ms % 1000) / 100);
+  document.getElementById('main-clock').innerHTML =
+    pad(Math.floor(s / 60)) + ':' + pad(s % 60) +
+    '<span class="dim">.' + t + '</span>';
+}
+
+function tick() {
+  if (!startTime || raceEnded) return;
+  setClock(Date.now() - startTime);
+  rafId = requestAnimationFrame(tick);
+}
+
+// ─────────────────────────────────
+// START
+// ─────────────────────────────────
+function startTimer() {
+  startTime = Date.now();
+  endTime   = null;
+  splits    = [];
+  raceEnded = false;
+  saveSession();
+
+  document.getElementById('ready-screen').style.display = 'none';
+  document.getElementById('app-layout').style.display = 'flex';
+  rafId = requestAnimationFrame(tick);
+}
+
+// ─────────────────────────────────
+// RECORD SPLIT
+// ─────────────────────────────────
+function recordSplit() {
+  if (!startTime || raceEnded) return;
+  const elapsed = Date.now() - startTime;
+  const idx = splits.length;
+  splits.push({ elapsed, bib: '' });
+  saveSession();
+
+  document.getElementById('empty-state').style.display = 'none';
+
+  const tbody = document.getElementById('splits-body');
+  const prev  = tbody.querySelector('tr.latest');
+  if (prev) prev.classList.remove('latest');
+
+  const gapMs = idx === 0 ? 0 : elapsed - splits[idx - 1].elapsed;
+  const tr = document.createElement('tr');
+  tr.className = 'latest';
+  tr.dataset.idx = idx;
+  tr.innerHTML =
+    '<td class="td-rank">' + (idx + 1) + '</td>' +
+    '<td class="td-time">' + fmtDisplay(elapsed) + '</td>' +
+    '<td class="td-gap">' + (idx === 0 ? '—' : fmtGap(gapMs)) + '</td>' +
+    '<td class="td-bib"><input class="bib-input" type="text" inputmode="numeric" placeholder="—" data-idx="' + idx + '"></td>' +
+    '<td class="td-del"><button class="del-btn" data-idx="' + idx + '" title="Löschen">✕</button></td>';
+  tbody.appendChild(tr);
+
+  const btn = document.getElementById('split-btn');
+  btn.classList.add('flash');
+  setTimeout(() => btn.classList.remove('flash'), 90);
+
+  const scroll = document.getElementById('splits-scroll');
+  scroll.scrollTop = scroll.scrollHeight;
+
+  updateStatus();
+}
+
+// ─────────────────────────────────
+// DELETE
+// ─────────────────────────────────
+function deleteSplit(idx) {
+  splits.splice(idx, 1);
+  saveSession();
+  fullRender();
+  updateStatus();
+}
+
+function fullRender() {
+  const tbody = document.getElementById('splits-body');
+  tbody.innerHTML = '';
+  const empty = document.getElementById('empty-state');
+  if (splits.length === 0) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  splits.forEach((sp, i) => {
+    const gapMs = i === 0 ? 0 : sp.elapsed - splits[i - 1].elapsed;
+    const tr = document.createElement('tr');
+    if (i === splits.length - 1) tr.className = 'latest';
+    tr.dataset.idx = i;
+    tr.innerHTML =
+      '<td class="td-rank">' + (i + 1) + '</td>' +
+      '<td class="td-time">' + fmtDisplay(sp.elapsed) + '</td>' +
+      '<td class="td-gap">' + (i === 0 ? '—' : fmtGap(gapMs)) + '</td>' +
+      '<td class="td-bib"><input class="bib-input' + (sp.bib ? ' filled' : '') + '" type="text" inputmode="numeric" value="' + sp.bib + '" placeholder="—" data-idx="' + i + '"></td>' +
+      '<td class="td-del"><button class="del-btn" data-idx="' + i + '" title="Löschen">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// ─────────────────────────────────
+// STATUS
+// ─────────────────────────────────
+function updateStatus() {
+  const n = splits.length;
+  document.getElementById('split-count-num').textContent = n;
+
+  const filled = splits.filter(s => s.bib.trim()).length;
+  const el = document.getElementById('bib-status');
+  if (n === 0) {
+    el.textContent = '';
+    el.className = '';
+  } else if (filled === n) {
+    el.textContent = '✓ Alle ' + n + ' Startnummern eingetragen';
+    el.className = 'complete';
+  } else {
+    el.textContent = filled + ' von ' + n + ' Startnummern';
+    el.className = '';
+  }
+}
+
+// ─────────────────────────────────
+// END RACE  (2-click confirmation)
+// ─────────────────────────────────
+function handleEndBtn() {
+  if (raceEnded) return;
+
+  if (!endConfirm) {
+    endConfirm = true;
+    const btn = document.getElementById('end-btn');
+    btn.textContent = '⏹ Nochmal drücken zum Beenden';
+    btn.classList.add('confirm');
+    endTimer = setTimeout(() => {
+      endConfirm = false;
+      btn.textContent = '⏹ Lauf beenden';
+      btn.classList.remove('confirm');
+    }, 3000);
+    return;
+  }
+
+  clearTimeout(endTimer);
+  endConfirm = false;
+  doEndRace();
+}
+
+function doEndRace() {
+  raceEnded = true;
+  endTime   = Date.now();
+  cancelAnimationFrame(rafId);
+  setClock(endTime - startTime);
+  applyEndedUI();
+  saveSession();
+}
+
+function applyEndedUI() {
+  document.getElementById('main-clock').classList.add('ended');
+  document.getElementById('clock-label').textContent = 'Endzeit';
+
+  const splitBtn = document.getElementById('split-btn');
+  splitBtn.disabled = true;
+  splitBtn.textContent = 'LAUF BEENDET';
+
+  const endBtn = document.getElementById('end-btn');
+  endBtn.textContent = '✓ Lauf beendet';
+  endBtn.className = 'done';
+}
+
+// ─────────────────────────────────
+// EVENT DELEGATION ON TBODY
+// ─────────────────────────────────
+document.getElementById('splits-body').addEventListener('input', (e) => {
+  if (!e.target.classList.contains('bib-input')) return;
+  const idx = parseInt(e.target.dataset.idx);
+  splits[idx].bib = e.target.value;
+  saveSession();
+  e.target.classList.toggle('filled', e.target.value.trim() !== '');
+  updateStatus();
+});
+
+document.getElementById('splits-body').addEventListener('keydown', (e) => {
+  if (!e.target.classList.contains('bib-input')) return;
+  const fwd = (e.code === 'Tab' && !e.shiftKey) || e.code === 'Enter';
+  if (!fwd) return;
+  e.preventDefault();
+  const inputs = Array.from(document.querySelectorAll('.bib-input'));
+  const cur = parseInt(e.target.dataset.idx);
+  for (let i = cur + 1; i < inputs.length; i++) {
+    if (!inputs[i].value.trim()) { inputs[i].focus(); return; }
+  }
+  for (let i = 0; i < cur; i++) {
+    if (!inputs[i].value.trim()) { inputs[i].focus(); return; }
+  }
+  e.target.blur();
+});
+
+document.getElementById('splits-body').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('del-btn')) return;
+  deleteSplit(parseInt(e.target.dataset.idx));
+});
+
+// ─────────────────────────────────
+// KEYBOARD
+// Leertaste: ALWAYS splits (capture phase fires before any input element)
+// Enter: splits only when focus is not on an input/button
+// ─────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (!startTime || raceEnded) return;
+
+  if (e.code === 'Space') {
+    e.preventDefault();
+    recordSplit();
+    return;
+  }
+
+  if (e.code === 'Enter' &&
+      e.target.tagName !== 'INPUT' &&
+      e.target.tagName !== 'BUTTON') {
+    e.preventDefault();
+    recordSplit();
+  }
+}, true); // capture = true: intercept before input elements receive the event
+
+// ─────────────────────────────────
+// COPY TO CLIPBOARD
+// ─────────────────────────────────
+function copyToClipboard() {
+  if (splits.length === 0) {
+    const btn = document.getElementById('copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Keine Splits vorhanden';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+    return;
+  }
+  const lines = ['Platz\tZeit\tStartnummer'];
+  splits.forEach((s, i) => lines.push((i + 1) + '\t' + fmtExport(s.elapsed) + '\t' + s.bib));
+  const text = lines.join('\n');
+  const btn = document.getElementById('copy-btn');
+
+  const done = () => {
+    btn.textContent = '✓ ' + splits.length + ' Zeilen kopiert!';
+    btn.classList.add('success');
+    setTimeout(() => { btn.textContent = '📋 Für Sheets kopieren'; btn.classList.remove('success'); }, 2500);
+  };
+
+  navigator.clipboard.writeText(text).then(done).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  });
+}
+
+// ─────────────────────────────────
+// PERSISTENCE
+// ─────────────────────────────────
+const STORAGE_KEY = 'zeitnahme_stauseelauf_2026';
+
+function saveSession() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ startTime, endTime, splits, raceEnded }));
+  } catch(e) {}
+}
+
+function restoreSession() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    startTime = d.startTime;
+    endTime   = d.endTime   || null;
+    splits    = d.splits    || [];
+    raceEnded = d.raceEnded || false;
+
+    document.getElementById('restore-banner').style.display = 'none';
+    document.getElementById('ready-screen').style.display  = 'none';
+    document.getElementById('app-layout').style.display    = 'flex';
+
+    fullRender();
+    updateStatus();
+
+    if (raceEnded) {
+      const ms = endTime
+        ? endTime - startTime
+        : (splits.length > 0 ? splits[splits.length - 1].elapsed : 0);
+      setClock(ms);
+      applyEndedUI();
+    } else {
+      rafId = requestAnimationFrame(tick);
+    }
+
+    setTimeout(() => {
+      const s = document.getElementById('splits-scroll');
+      s.scrollTop = s.scrollHeight;
+    }, 50);
+  } catch(e) { dismissRestore(); }
+}
+
+function dismissRestore() {
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('restore-banner').style.display = 'none';
+}
+
+window.addEventListener('load', () => {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if (d.startTime && d.splits && d.splits.length > 0) {
+      const mins   = Math.round((Date.now() - d.startTime) / 60000);
+      const ago    = mins < 60 ? 'vor ' + mins + ' Min.' : 'vor ' + Math.round(mins / 60) + ' Std.';
+      const suffix = d.raceEnded ? ' · Lauf beendet' : '';
+      document.getElementById('restore-msg').textContent =
+        d.splits.length + ' Zieleinläufe gespeichert (' + ago + suffix + ')';
+      document.getElementById('restore-banner').style.display = 'flex';
+    }
+  } catch(e) { localStorage.removeItem(STORAGE_KEY); }
+});
+</script>
+</body>
+</html>
