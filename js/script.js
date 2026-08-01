@@ -92,8 +92,8 @@ async function checkPublishStatus() {
 // ============================================
 function applyMemberModeToCard(card) {
     card.querySelectorAll('select[name="distance"] option').forEach(opt => {
-        if (opt.value === '5.3km')      opt.textContent = '5,3 km (1x um den See)';
-        else if (opt.value === '10.6km') opt.textContent = '10,6 km (2x um den See)';
+        if (opt.value === '5.3km')      opt.textContent = '3,5 km (1 Runde)';
+        else if (opt.value === '10.6km') opt.textContent = '10,5 km (3 Runden)';
     });
 }
 
@@ -163,8 +163,8 @@ function addParticipant() {
             <label>Strecke *</label>
             <select name="distance" required onchange="updateTotalPrice()">
                 <option value="">Bitte wählen</option>
-                <option value="5.3km">5,3 km (1x um den See) – 15 EUR</option>
-                <option value="10.6km">10,6 km (2x um den See) – 15 EUR</option>
+                <option value="5.3km">3,5 km (1 Runde) – 15 EUR</option>
+                <option value="10.6km">10,5 km (3 Runden) – 15 EUR</option>
                 <option value="test" class="test-option" style="display:none">Testlauf (0,50 EUR) – nur zum Testen</option>
             </select>
         </div>
@@ -696,7 +696,7 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     const cx = canvas.width * 0.70;
     const colorDark = '#04368b';
     const colorMid  = '#444444';
-    const streckeText = strecke === 'test' ? 'Testlauf' : strecke.includes('10') ? '10,6 km' : '5,3 km';
+    const streckeText = strecke === 'test' ? 'Testlauf' : strecke.includes('10') ? '10,5 km' : '3,5 km';
 
     // Zeilen mit individuellem Abstand
     const lines = [];
