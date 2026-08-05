@@ -716,7 +716,7 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
     // White content area: brightness scan shows clear zone from 40%–85% of canvas height
-    const AREA_TOP    = Math.round(canvas.height * (460 / 1132));
+    const AREA_TOP    = Math.round(canvas.height * (509 / 1132));
     const AREA_BOTTOM = Math.round(canvas.height * (958 / 1132));
     const areaCenter  = Math.round((AREA_TOP + AREA_BOTTOM) / 2);
     // Exact vertical centering: cy = areaCenter - sumGaps/2 + (firstFs*0.75 - lastFs*0.25)/2
