@@ -21,6 +21,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Registration form setup
     const form = document.getElementById('registration-form');
     if (form) {
+        // Anmeldeschluss: 07.08.2026 17:50 Uhr CEST (= 15:50 UTC)
+        const DEADLINE = new Date('2026-08-07T15:50:00Z');
+        if (new Date() >= DEADLINE) {
+            const section = document.getElementById('anmeldung');
+            if (section) {
+                section.innerHTML = `
+                    <div style="text-align:center; padding: 60px 20px; max-width: 520px; margin: 0 auto;">
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1a5f7a" stroke-width="1.5" style="margin-bottom:20px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <h2 style="color:var(--primary-color);margin-bottom:12px;">Anmeldung geschlossen</h2>
+                        <p style="color:#555;font-size:1.05rem;line-height:1.7;">Der Anmeldeschluss war am 7. August 2026 um 17:50 Uhr.<br>Eine Nachmeldung ist nicht mehr möglich.</p>
+                        <p style="color:#888;margin-top:16px;">Wir freuen uns, euch beim nächsten Stauseelauf wieder begrüßen zu dürfen!</p>
+                    </div>`;
+            }
+        } else {
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
         const urlParams = new URLSearchParams(window.location.search);
@@ -37,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const genderSel = firstCard.querySelector('[name="gender"]');
             if (genderSel) genderSel.setAttribute('onchange', 'updateDiversHint(this)');
         }
+        } // end else (registration open)
     }
 
     // Teilnehmerliste page
