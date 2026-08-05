@@ -698,23 +698,31 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     const colorMid  = '#444444';
     const streckeText = strecke === 'test' ? 'Testlauf' : strecke.includes('10') ? '10,5 km' : '3,5 km';
 
+    const hasVerein = !!(verein && verein !== '-');
+    const hasAK     = !!(altersklasse && altersklasse !== '-' && platzAK);
+
+    // Gap = visual_whitespace + current_descender(fs*0.25) + next_ascender(fs*0.75)
+    // Within group (tight, ~8.5px WS): Name↔Verein, Platz↔AK
+    // Between groups (loose, ~18.5px WS): Verein→Platz, AK→Strecke
+    // Strecke→Zeit (~12px WS): medium, accounts for size jump 24→36px
     const lines = [];
-    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: verein && verein !== '-' ? 44 : 56 });
-    if (verein && verein !== '-')
-        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 54 });
-    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: altersklasse && altersklasse !== '-' && platzAK ? 40 : 52 });
-    if (altersklasse && altersklasse !== '-' && platzAK)
-        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 52 });
-    lines.push({ text: `Strecke: ${streckeText}`, font: `24px ${font}`, color: colorMid, gap: 40 });
+    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: hasVerein ? 35 : 55 });
+    if (hasVerein)
+        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 51 });
+    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: hasAK ? 34 : 45 });
+    if (hasAK)
+        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 42 });
+    lines.push({ text: `Strecke: ${streckeText}`, font: `24px ${font}`, color: colorMid, gap: 45 });
     lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
     // Freies Textfeld: Bild y=795–1685 → Canvas y=450–954
     const AREA_TOP    = Math.round(canvas.height * (450 / 1132));
     const AREA_BOTTOM = Math.round(canvas.height * (954 / 1132));
     const areaCenter  = Math.round((AREA_TOP + AREA_BOTTOM) / 2);
-    const totalH = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0) + 36;
-    // +24 corrects for canvas baseline vs visual top (ascender offset)
-    let cy = areaCenter - Math.round(totalH / 2) + 24;
+    // Exact vertical centering: cy = areaCenter - sumGaps/2 + (firstFs*0.75 - lastFs*0.25)/2
+    // = areaCenter - sumGaps/2 + (40*0.75 - 36*0.25)/2 = areaCenter - sumGaps/2 + 10
+    const sumGaps = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0);
+    let cy = Math.round(areaCenter - sumGaps / 2 + 10);
 
     ctx.textAlign = 'center';
     lines.forEach(line => {
