@@ -693,7 +693,7 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     ctx.drawImage(certificateBg, 0, 0, canvas.width, canvas.height);
 
     const font = 'Calibri, Candara, "Segoe UI", Arial, sans-serif';
-    const cx = canvas.width * 0.70;
+    const cx = canvas.width * 0.50;
     const colorDark = '#04368b';
     const colorMid  = '#444444';
     const streckeText = strecke === 'test' ? 'Testlauf' : strecke.includes('10') ? '10,5 km' : '3,5 km';
@@ -715,9 +715,9 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     lines.push({ text: `Strecke: ${streckeText}`, font: `24px ${font}`, color: colorMid, gap: 45 });
     lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
-    // Freies Textfeld: Bild y=795–1685 → Canvas y=450–954
-    const AREA_TOP    = Math.round(canvas.height * (450 / 1132));
-    const AREA_BOTTOM = Math.round(canvas.height * (954 / 1132));
+    // White content area: brightness scan shows clear zone from 40%–85% of canvas height
+    const AREA_TOP    = Math.round(canvas.height * (460 / 1132));
+    const AREA_BOTTOM = Math.round(canvas.height * (958 / 1132));
     const areaCenter  = Math.round((AREA_TOP + AREA_BOTTOM) / 2);
     // Exact vertical centering: cy = areaCenter - sumGaps/2 + (firstFs*0.75 - lastFs*0.25)/2
     // = areaCenter - sumGaps/2 + (40*0.75 - 36*0.25)/2 = areaCenter - sumGaps/2 + 10
