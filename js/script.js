@@ -698,15 +698,14 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     const colorMid  = '#444444';
     const streckeText = strecke === 'test' ? 'Testlauf' : strecke.includes('10') ? '10,5 km' : '3,5 km';
 
-    // Zeilen mit individuellem Abstand
     const lines = [];
-    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: 56 });
+    lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: verein && verein !== '-' ? 44 : 56 });
     if (verein && verein !== '-')
-        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 46 });
-    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: 46 });
+        lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 54 });
+    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: altersklasse && altersklasse !== '-' && platzAK ? 40 : 52 });
     if (altersklasse && altersklasse !== '-' && platzAK)
-        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 46 });
-    lines.push({ text: `Strecke: ${streckeText}`, font: `26px ${font}`, color: colorMid, gap: 46 });
+        lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 52 });
+    lines.push({ text: `Strecke: ${streckeText}`, font: `24px ${font}`, color: colorMid, gap: 40 });
     lines.push({ text: `Zeit: ${zeit}`, font: `bold 36px ${font}`, color: colorDark, gap: 0 });
 
     // Freies Textfeld: Bild y=795–1685 → Canvas y=450–954
@@ -714,7 +713,8 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     const AREA_BOTTOM = Math.round(canvas.height * (954 / 1132));
     const areaCenter  = Math.round((AREA_TOP + AREA_BOTTOM) / 2);
     const totalH = lines.slice(0, -1).reduce((sum, l) => sum + l.gap, 0) + 36;
-    let cy = areaCenter - Math.round(totalH / 2);
+    // +24 corrects for canvas baseline vs visual top (ascender offset)
+    let cy = areaCenter - Math.round(totalH / 2) + 24;
 
     ctx.textAlign = 'center';
     lines.forEach(line => {
