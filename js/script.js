@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Registration form setup
     const form = document.getElementById('registration-form');
     if (form) {
-        // Anmeldeschluss: 07.08.2026 17:50 Uhr CEST (= 15:50 UTC)
-        const DEADLINE = new Date('2026-08-07T15:50:00Z');
+        // Anmeldeschluss: 07.08.2026 sofort (= 00:00 UTC)
+        const DEADLINE = new Date('2026-08-07T00:00:00Z');
         if (new Date() >= DEADLINE) {
             const section = document.getElementById('anmeldung');
             if (section) {
