@@ -665,11 +665,10 @@ function showResults(distance, ageGroup = null) {
         return;
     }
 
-    // Determine which rank to show based on filter
-    const showAKRank = currentAgeGroup !== 'Gesamt' && currentAgeGroup !== 'M' && currentAgeGroup !== 'W';
-
     tbody.innerHTML = filtered.map(r => {
-        const displayRank = showAKRank ? r.platzAK : r.platzGesamt;
+        const displayRank = currentAgeGroup === 'Gesamt' ? r.platzGesamt
+            : (currentAgeGroup === 'M' || currentAgeGroup === 'W') ? r.platzGeschlecht
+            : r.platzAK;
         const akDisplay = r.Altersklasse || '-';
         const escapedVerein = (r.Verein || '-').replace(/'/g, "\\'");
         const escapedVorname = (r.Vorname || '').replace(/'/g, "\\'");
