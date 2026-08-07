@@ -88,7 +88,7 @@ async function checkPublishStatus() {
             if (navTeilnehmer) navTeilnehmer.classList.remove('hidden');
             if (navErgebnisse) navErgebnisse.classList.add('hidden');
         } else if (status === 'ERGEBNISLISTE') {
-            if (navTeilnehmer) navTeilnehmer.classList.remove('hidden');
+            if (navTeilnehmer) navTeilnehmer.classList.add('hidden');
             if (navErgebnisse) navErgebnisse.classList.remove('hidden');
         } else {
             if (navTeilnehmer) navTeilnehmer.classList.add('hidden');
