@@ -611,6 +611,15 @@ function showResults(distance, ageGroup = null) {
         r.platzGesamt = i + 1;
     });
 
+    // Calculate gender-specific rankings
+    const genderRankings = { M: 0, W: 0 };
+    filtered.forEach(r => {
+        const g = (r.Altersklasse && r.Altersklasse.startsWith('W')) ? 'W' : 'M';
+        genderRankings[g]++;
+        r.platzGeschlecht = genderRankings[g];
+        r.geschlecht = g;
+    });
+
     // Calculate age group rankings
     const akRankings = {};
     filtered.forEach(r => {
@@ -673,7 +682,7 @@ function showResults(distance, ageGroup = null) {
                 <td>${r.Verein || '-'}</td>
                 <td>${akDisplay}</td>
                 <td>${r.Zeit}</td>
-                <td><button class="urkunde-btn" onclick="generateCertificate(${r.platzGesamt}, '${escapedVorname}', '${escapedNachname}', '${r.Zeit}', '${r.Strecke}', '${escapedVerein}', '${akDisplay}', ${r.platzAK})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></td>
+                <td><button class="urkunde-btn" onclick="generateCertificate(${r.platzGeschlecht}, '${escapedVorname}', '${escapedNachname}', '${r.Zeit}', '${r.Strecke}', '${escapedVerein}', '${akDisplay}', ${r.platzAK}, '${r.geschlecht}')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></td>
             </tr>
         `;
     }).join('');
@@ -699,7 +708,7 @@ function showNoDataMessage(message) {
 // ============================================
 // URKUNDEN PDF GENERIERUNG
 // ============================================
-function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK) {
+function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK, geschlecht) {
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = Math.round(800 * (certificateBg.naturalHeight / certificateBg.naturalWidth));
@@ -724,7 +733,8 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     lines.push({ text: `${vorname} ${nachname}`, font: `bold 40px ${font}`, color: colorDark, gap: hasVerein ? 35 : 55 });
     if (hasVerein)
         lines.push({ text: verein, font: `22px ${font}`, color: colorMid, gap: 51 });
-    lines.push({ text: `${platz}. Platz`, font: `bold 36px ${font}`, color: colorDark, gap: hasAK ? 34 : 45 });
+    const genderLabel = geschlecht === 'W' ? 'Frauen' : 'Männer';
+    lines.push({ text: `${platz}. Platz ${genderLabel}`, font: `bold 36px ${font}`, color: colorDark, gap: hasAK ? 34 : 45 });
     if (hasAK)
         lines.push({ text: `${platzAK}. Platz in ${altersklasse}`, font: `22px ${font}`, color: colorMid, gap: 42 });
     lines.push({ text: `Strecke: ${streckeText}`, font: `24px ${font}`, color: colorMid, gap: 45 });
@@ -750,13 +760,13 @@ function drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, 
     return canvas;
 }
 
-function generateCertificate(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK) {
+function generateCertificate(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK, geschlecht) {
     if (!certificateBg.complete || !certificateBg.naturalWidth) {
         alert('Hintergrundbild wird noch geladen, bitte kurz warten und erneut versuchen.');
         return;
     }
 
-    const canvas = drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK);
+    const canvas = drawCertificateCanvas(platz, vorname, nachname, zeit, strecke, verein, altersklasse, platzAK, geschlecht);
 
     try {
         const link = document.createElement('a');
