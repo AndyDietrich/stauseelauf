@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galerie - Stauseelauf 2026</title>
+    <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 24px;
+        }
+        @media (max-width: 700px) {
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        }
+        @media (max-width: 420px) {
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #111;
+            cursor: pointer;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.25s ease;
+        }
+        .gallery-item:hover img { transform: scale(1.04); }
+        .gallery-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .gallery-item.is-video { cursor: default; }
+        .gallery-caption {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 8px 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.55));
+            color: #fff;
+            font-size: 0.82rem;
+            pointer-events: none;
+        }
+
+        /* Lightbox */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #lightbox.open { display: flex; }
+        #lightbox img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+        }
+        #lightbox-close {
+            position: absolute;
+            top: 16px; right: 20px;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+            background: none;
+            border: none;
+            padding: 4px 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="container">
+            <a href="/" class="nav-brand">
+                <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen" class="nav-logo">
+                Stauseelauf 2026
+            </a>
+            <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Start</a></li>
+                <li><a href="/galerie" class="active">Galerie</a></li>
+                <li><a href="/ergebnisse">Ergebnisse</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header>
+        <div class="hero-image">
+            <img src="images/galerie/02_startaufstellung.jpg" alt="Stauseelauf 2026 – Start">
+        </div>
+        <div class="hero-content">
+            <h1>Galerie</h1>
+            <p class="subtitle">Stauseelauf 2026 – 7. August 2026</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="info-section">
+            <div class="gallery-grid">
+
+                <div class="gallery-item" onclick="openLightbox('images/galerie/01_anmeldung.jpg')">
+                    <img src="images/galerie/01_anmeldung.jpg" alt="Anmeldung">
+                    <div class="gallery-caption">Anmeldung</div>
+                </div>
+
+                <div class="gallery-item" onclick="openLightbox('images/galerie/02_startaufstellung.jpg')">
+                    <img src="images/galerie/02_startaufstellung.jpg" alt="Startaufstellung">
+                    <div class="gallery-caption">Startaufstellung</div>
+                </div>
+
+                <div class="gallery-item is-video">
+                    <video controls playsinline preload="metadata" style="border-radius:10px;">
+                        <source src="images/galerie/03_start_video.mp4" type="video/mp4">
+                    </video>
+                    <div class="gallery-caption">Start</div>
+                </div>
+
+                <div class="gallery-item" onclick="openLightbox('images/galerie/04_sieger_herren_10km.jpg')">
+                    <img src="images/galerie/04_sieger_herren_10km.jpg" alt="Sieger Herren 10,5 km">
+                    <div class="gallery-caption">Sieger Herren 10,5 km</div>
+                </div>
+
+                <div class="gallery-item is-video">
+                    <video controls playsinline preload="metadata" style="border-radius:10px;">
+                        <source src="images/galerie/05_siegerehrung_damen.mp4" type="video/mp4">
+                    </video>
+                    <div class="gallery-caption">Siegerehrung Damen 3,5 km</div>
+                </div>
+
+                <div class="gallery-item" onclick="openLightbox('images/galerie/06_sieger_herren_3km.jpg')">
+                    <img src="images/galerie/06_sieger_herren_3km.jpg" alt="Sieger Herren 3,5 km">
+                    <div class="gallery-caption">Sieger Herren 3,5 km</div>
+                </div>
+
+                <div class="gallery-item" onclick="openLightbox('images/galerie/07_siegerehrung.jpg')">
+                    <img src="images/galerie/07_siegerehrung.jpg" alt="Siegerehrung">
+                    <div class="gallery-caption">Siegerehrung</div>
+                </div>
+
+                <div class="gallery-item is-video">
+                    <video controls playsinline preload="metadata" style="border-radius:10px;">
+                        <source src="images/galerie/08_kuchen.mp4" type="video/mp4">
+                    </video>
+                    <div class="gallery-caption">Kuchen &amp; Verpflegung</div>
+                </div>
+
+                <div class="gallery-item" onclick="openLightbox('images/galerie/09_tombola.jpg')">
+                    <img src="images/galerie/09_tombola.jpg" alt="Tombola">
+                    <div class="gallery-caption">Tombola</div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <div id="lightbox" onclick="closeLightbox()">
+        <button id="lightbox-close" onclick="closeLightbox()">&#x2715;</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TSV Bad Wörishofen - Leichtathletik</p>
+            <p>
+                <a href="https://www.tsv-bw.de" target="_blank">www.tsv-bw.de</a>
+                &nbsp;·&nbsp;
+                <a href="https://www.tsv-bw.de/impressum/" target="_blank">Impressum</a>
+                &nbsp;·&nbsp;
+                <a href="https://www.tsv-bw.de/datenschutz/" target="_blank">Datenschutz</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+            document.getElementById('lightbox-img').src = '';
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+    </script>
+</body>
+</html>
