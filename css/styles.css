@@ -39,6 +39,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
+    max-width: 1140px;
 }
 
 .nav-brand {
@@ -97,7 +98,7 @@ body {
     padding: 10px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 960px) {
     .main-nav .container {
         flex-wrap: wrap;
     }
