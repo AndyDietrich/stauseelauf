@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Für Spomio e.V. spenden – Stauseelauf 2026</title>
-    <meta name="description" content="Unterstütze Spomio e.V. Mindelheim – einen Inklusionsverein für Kinder mit und ohne Behinderung – mit einer Spende beim Stauseelauf 2026.">
+    <!-- SPENDENKAMPAGNE: aktuell "Kinder- und Jugendabteilung". Spomio-Variante zum Zurückwechseln:
+         <title>Für Spomio e.V. spenden – Nikolauslauf 2026</title>
+         <meta name="description" content="Unterstütze Spomio e.V. Mindelheim – einen Inklusionsverein für Kinder mit und ohne Behinderung – mit einer Spende beim Nikolauslauf 2026."> -->
+    <title>Für unsere Kinder- und Jugendabteilung spenden – Nikolauslauf 2026</title>
+    <meta name="description" content="Unterstütze die Trainingsausrüstung der Kinder- und Jugendabteilung des TSV Bad Wörishofen Leichtathletik mit einer Spende beim Nikolauslauf 2026.">
     <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/styles.css">
     <style>
@@ -39,13 +42,12 @@
         <div class="container">
             <a href="/" class="nav-brand">
                 <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen" class="nav-logo">
-                Stauseelauf 2026
+                Nikolauslauf 2026
             </a>
             <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Start</a></li>
-                <li class="hidden"><a href="/registration">Anmeldung</a></li>
-                <li><a href="/strecke">Strecke</a></li>
+                <li><a href="/registration">Anmeldung</a></li>
                 <li id="nav-teilnehmer" class="hidden"><a href="/teilnehmerliste">Teilnehmerliste</a></li>
                 <li id="nav-ergebnisse" class="hidden"><a href="/ergebnisse">Ergebnisse</a></li>
                 <li><a href="/galerie">Galerie</a></li>
@@ -55,11 +57,12 @@
 
     <header>
         <div class="hero-image">
-            <img src="images/Stauseelauf004.jpg" alt="Stauseelauf - Läufer am Start">
+            <img src="images/NikolauslaufHeroBanner.jpg" alt="Nikolauslauf - Läufer am Start">
         </div>
         <div class="hero-content">
-            <h1>Spenden für Spomio e.V.</h1>
-            <p class="subtitle">Stauseelauf 2026 – 7. August 2026</p>
+            <!-- Spomio-Variante: <h1>Spenden für Spomio e.V.</h1> -->
+            <h1>Spenden für unseren Nachwuchs</h1>
+            <p class="subtitle">Nikolauslauf 2026 – 6. Dezember 2026</p>
         </div>
     </header>
 
@@ -67,12 +70,22 @@
         <section class="registration-section">
             <div id="error-banner" style="display:none; background:#fee; border:1px solid #fcc; border-radius:8px; padding:12px 16px; margin-bottom:20px; color:#c00; font-size:0.9rem;"></div>
 
+            <!-- SPENDENKAMPAGNE: aktuell "Kinder- und Jugendabteilung". Zum Zurückwechseln auf
+                 Spomio e.V.: diesen Block auskommentieren und den Spomio-Block darunter aktivieren. -->
+            <div class="spende-logo-block">
+                <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen">
+                <p>
+                    Mit deiner Spende unterstützt du die Trainingsausrüstung unserer <strong>Kinder- und Jugendabteilung</strong> beim TSV Bad Wörishofen Leichtathletik – von Hürden über Medizinbälle bis zu neuen Laufschuhen für den Nachwuchs.
+                </p>
+            </div>
+            <!-- SPOMIO-VARIANTE (inaktiv) – zum Reaktivieren: Block oben auskommentieren, diesen hier einkommentieren.
             <div class="spende-logo-block">
                 <img src="images/spomio-logo.png" alt="Spomio e.V. Mindelheim">
                 <p>
-                    <strong>Spomio e.V. Mindelheim</strong> ist ein Inklusionsverein, der Kindern mit und ohne Behinderung gemeinsame Sport- und Freizeiterlebnisse ermöglicht. Beim Stauseelauf 2026 sammeln wir Spenden für diesen tollen Verein.
+                    <strong>Spomio e.V. Mindelheim</strong> ist ein Inklusionsverein, der Kindern mit und ohne Behinderung gemeinsame Sport- und Freizeiterlebnisse ermöglicht. Beim Nikolauslauf 2026 sammeln wir Spenden für diesen tollen Verein.
                 </p>
             </div>
+            -->
 
             <p class="price-info">Wähle einen Betrag oder gib einen eigenen ein:</p>
 
@@ -112,8 +125,9 @@
                 Betrag wählen
             </button>
 
+            <!-- Spomio-Variante: Zahlung sicher über Stripe · Die Spenden werden direkt an Spomio e.V. Mindelheim weitergeleitet. -->
             <p class="payment-note">
-                Zahlung sicher über Stripe · Die Spenden werden direkt an Spomio e.V. Mindelheim weitergeleitet.
+                Zahlung sicher über Stripe · Die Spende kommt direkt unserer Kinder- und Jugendabteilung zugute.
             </p>
         </section>
     </main>

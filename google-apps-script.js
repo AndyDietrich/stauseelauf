@@ -1,3 +1,25 @@
+// ============================================
+// NIKOLAUSLAUF 2026 – WICHTIGER HINWEIS
+// ============================================
+// Diese Datei ist nur eine lokale Kopie. Die tatsächlich aktive Version
+// liegt im Apps Script Editor, der an das unten verlinkte Google Sheet
+// gebunden ist (script.google.com, Projekt am Sheet SPREADSHEET_ID).
+// Änderungen hier werden NICHT automatisch live geschaltet – nach Review
+// muss der Inhalt dieser Datei manuell in den Apps Script Editor kopiert
+// und dort neu deployed werden (Deploy > Manage deployments > Edit > neue
+// Version). Außerdem muss im Sheet "Teilnehmer" die Kopfzeile angepasst
+// werden: Spalte E (bisher "Jahrgang") -> "Team", Spalte F (bisher
+// "Geschlecht") -> "Typ". Spalten G/H bleiben technisch bestehen, werden
+// aber nicht mehr befüllt (immer "-"). Spalten I/J/K (Status/OrderID/
+// PaymentID) bleiben an Position 9/10/11 – das ist wichtig, weil die
+// Stripe-Webhook-Cloud-Function (webhook-cloud-function/index.js) diese
+// Spalten über feste Indizes anspricht.
+// Vor dem ersten Live-Lauf außerdem: alte Stauseelauf-Zeilen aus dem
+// Sheet in ein Archiv-Tab verschieben/löschen und PUBLISH_CELL (N1)
+// wieder auf FALSE setzen, bis die neue Teilnehmerliste veröffentlicht
+// werden soll.
+// ============================================
+
 const SPREADSHEET_ID = '1aRfbY4shiAEZWpvK6JPkQsR4rbn_rbyhLysrpwH01UM';
 const SHEET_NAME = 'Teilnehmer';
 const PUBLISH_CELL = 'N1';
@@ -13,13 +35,29 @@ const CANCEL_URL = 'https://kneipp-run.de/registration?error=cancelled';
 const DONATE_SUCCESS_URL = 'https://kneipp-run.de/success-spende';
 const DONATE_CANCEL_URL = 'https://kneipp-run.de/spende?error=cancelled';
 
-// Prices in cents
-const PRICE_CENTS_DEFAULT = 1500; // 15 EUR
-const PRICE_CENTS_TEST = 50; // 0,50 EUR – nur zum Testen
+// Prices in cents (Nikolauslauf: pauschal pro Team bzw. Einzelstarter)
+const PRICE_CENTS_TEAM = 2500; // 25 EUR pro Team (2 Personen)
+const PRICE_CENTS_SOLO = 2000; // 20 EUR Einzelstarter
 
-// Race Day for age calculation
-const RACE_DATE = new Date(2026, 7, 7); // August 7, 2026 (month is 0-indexed)
-const PREVIEW_SHEET_NAME = 'Ergebnis-Vorschau';
+// Teilnehmerlimit (Personen, nicht Teams)
+const PARTICIPANT_LIMIT = 100;
+
+// ============================================
+// SPENDENKAMPAGNE
+// ============================================
+// Aktuell: Kinder- und Jugendabteilung (Geld bleibt im Verein).
+// Zum Zurückwechseln auf Spomio e.V.: unteren Block auskommentieren,
+// den Spomio-Block darunter einkommentieren.
+const DONATION_PRODUCT_NAME = 'Spende TSV Bad Wörishofen - Kinder- und Jugendabteilung';
+const DONATION_DESCRIPTION_SUFFIX = 'Trainingsausrüstung für die Kinder- und Jugendabteilung';
+/* SPOMIO-VARIANTE (inaktiv):
+const DONATION_PRODUCT_NAME = 'Spende Spomio e.V. Mindelheim';
+const DONATION_DESCRIPTION_SUFFIX = 'Inklusionsverein für Kinder mit und ohne Behinderung';
+*/
+
+// Race Day
+const RACE_DATE = new Date(2026, 11, 6); // 6. Dezember 2026 (month is 0-indexed)
+const PREVIEW_SHEET_NAME = 'Ergebnis-Vorschau'; // Stausee-Altlast, aktuell ungenutzt
 
 // ============================================
 // GET REQUEST HANDLER
@@ -49,7 +87,7 @@ function doGet(e) {
       return handleMemberRegistration(e.parameter);
     }
 
-    // Standalone donation for Spomio e.V.
+    // Standalone donation (Zweck: siehe DONATION_PRODUCT_NAME)
     if (action === 'createDonation') {
       return handleCreateDonation(e.parameter);
     }
@@ -180,11 +218,17 @@ function handleMemberRegistration(params) {
     return jsonResponse({ error: 'invalid_participants' });
   }
 
-  if (!participants.length) {
-    return jsonResponse({ error: 'no_participants' });
+  if (!participants.length || participants.length > 2) {
+    return jsonResponse({ error: 'invalid_participants' });
+  }
+
+  if (countActiveParticipants() + participants.length > PARTICIPANT_LIMIT) {
+    return jsonResponse({ error: 'ausgebucht' });
   }
 
   const email = params.email;
+  const startType = params.startType === 'solo' ? 'Einzelstarter' : 'Team';
+  const teamName = params.teamName || '';
   const orderId = 'MITGLIED-' + Date.now();
 
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
@@ -194,10 +238,10 @@ function handleMemberRegistration(params) {
       p.firstName,                         // Vorname
       p.lastName,                          // Nachname
       email,                               // E-Mail
-      p.birthYear || '',                   // Jahrgang
-      p.gender || '',                      // Geschlecht
-      p.distance || '',                    // Strecke
-      p.club || '-',                       // Verein
+      teamName,                            // Team (ehem. Jahrgang)
+      startType,                           // Typ (ehem. Geschlecht)
+      '-',                                 // Strecke (ungenutzt)
+      '-',                                 // Verein (ungenutzt)
       'Bezahlt',                           // Status
       orderId,                             // OrderID
       'Mitglied',                          // Payment ID
@@ -209,8 +253,20 @@ function handleMemberRegistration(params) {
   return jsonResponse({ success: true });
 }
 
+// Anzahl Personen, die bereits bezahlt haben oder gerade im Checkout sind
+// (zählt "Ausstehend" mit, um Überbuchung bei gleichzeitigen Checkouts zu vermeiden)
+function countActiveParticipants() {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  let count = 0;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][8] === 'Bezahlt' || data[i][8] === 'Ausstehend') count++;
+  }
+  return count;
+}
+
 // ============================================
-// STANDALONE DONATION HANDLER (Spomio e.V.)
+// STANDALONE DONATION HANDLER
 // ============================================
 
 function handleCreateDonation(params) {
@@ -237,8 +293,8 @@ function handleCreateDonation(params) {
       'metadata[email]': email,
       'line_items[0][price_data][currency]': 'eur',
       'line_items[0][price_data][unit_amount]': String(amount),
-      'line_items[0][price_data][product_data][name]': 'Spende Spomio e.V. Mindelheim',
-      'line_items[0][price_data][product_data][description]': amountEur + ' EUR – Inklusionsverein für Kinder mit und ohne Behinderung',
+      'line_items[0][price_data][product_data][name]': DONATION_PRODUCT_NAME,
+      'line_items[0][price_data][product_data][description]': amountEur + ' EUR – ' + DONATION_DESCRIPTION_SUFFIX,
       'line_items[0][quantity]': '1'
     };
 
@@ -261,7 +317,7 @@ function handleCreateDonation(params) {
       throw new Error(result.error.message);
     }
 
-    Logger.log('Spomio-Spende erstellt: ' + donationId + ' (' + amount + ' Cent)');
+    Logger.log('Spende erstellt: ' + donationId + ' (' + amount + ' Cent)');
     return jsonResponse({ checkoutUrl: result.url });
 
   } catch (error) {
@@ -286,16 +342,18 @@ function handleCreateCheckout(params) {
     return jsonResponse({ error: 'invalid_participants' });
   }
 
-  if (!participants.length) {
-    return jsonResponse({ error: 'no_participants' });
+  if (!participants.length || participants.length > 2) {
+    return jsonResponse({ error: 'invalid_participants' });
   }
 
-  if (participants.length > 7) {
-    return jsonResponse({ error: 'too_many_participants' });
+  if (countActiveParticipants() + participants.length > PARTICIPANT_LIMIT) {
+    return jsonResponse({ error: 'ausgebucht' });
   }
 
   const donation = parseInt(params.donation || '0');
   const email = params.email;
+  const startType = params.startType === 'solo' ? 'Einzelstarter' : 'Team';
+  const teamName = params.teamName || '';
   const orderId = 'order_' + Date.now();
 
   // Pre-store all participants with status "Ausstehend"
@@ -306,10 +364,10 @@ function handleCreateCheckout(params) {
       p.firstName,                         // Vorname
       p.lastName,                          // Nachname
       email,                               // E-Mail
-      p.birthYear || '',                   // Jahrgang
-      p.gender || '',                      // Geschlecht
-      p.distance || '',                    // Strecke
-      p.club || '-',                       // Verein
+      teamName,                            // Team (ehem. Jahrgang)
+      startType,                           // Typ (ehem. Geschlecht)
+      '-',                                 // Strecke (ungenutzt)
+      '-',                                 // Verein (ungenutzt)
       'Ausstehend',                        // Status
       orderId,                             // OrderID
       '',                                  // Stripe Payment ID
@@ -318,7 +376,7 @@ function handleCreateCheckout(params) {
   });
 
   try {
-    const checkoutUrl = createStripeCheckoutSession(participants, email, orderId, donation);
+    const checkoutUrl = createStripeCheckoutSession(participants, email, orderId, donation, startType, teamName);
     return jsonResponse({ checkoutUrl: checkoutUrl });
   } catch (error) {
     Logger.log('Stripe error: ' + error.message);
@@ -326,7 +384,7 @@ function handleCreateCheckout(params) {
   }
 }
 
-function createStripeCheckoutSession(participants, email, orderId, donation) {
+function createStripeCheckoutSession(participants, email, orderId, donation, startType, teamName) {
   const url = 'https://api.stripe.com/v1/checkout/sessions';
   donation = donation || 0;
 
@@ -338,38 +396,35 @@ function createStripeCheckoutSession(participants, email, orderId, donation) {
     'metadata[orderId]': orderId,
     'metadata[email]': email,
     'metadata[count]': String(participants.length),
+    'metadata[startType]': startType,
+    'metadata[teamName]': teamName,
     'metadata[donation]': String(donation)
   };
 
+  const isSolo = startType === 'Einzelstarter';
+  const priceCents = isSolo ? PRICE_CENTS_SOLO : PRICE_CENTS_TEAM;
+  const names = participants.map(function(p) { return p.firstName + ' ' + p.lastName; }).join(' & ');
+  const productName = 'Nikolauslauf 2026 - ' + (isSolo ? 'Einzelstarter' : 'Team' + (teamName ? ' "' + teamName + '"' : ''));
+
+  payload['line_items[0][price_data][currency]'] = 'eur';
+  payload['line_items[0][price_data][unit_amount]'] = String(priceCents);
+  payload['line_items[0][price_data][product_data][name]'] = productName;
+  payload['line_items[0][price_data][product_data][description]'] = names;
+  payload['line_items[0][quantity]'] = '1';
+
   participants.forEach(function(p, i) {
-    const isTest = p.distance === 'test';
-    const distanceLabel = isTest ? 'TEST' : p.distance.includes('10') ? '10,6 km' : '5,3 km';
-    const priceCents = isTest ? PRICE_CENTS_TEST : PRICE_CENTS_DEFAULT;
-
-    payload['line_items[' + i + '][price_data][currency]'] = 'eur';
-    payload['line_items[' + i + '][price_data][unit_amount]'] = String(priceCents);
-    payload['line_items[' + i + '][price_data][product_data][name]'] = 'Stauseelauf 2026 - ' + distanceLabel;
-    payload['line_items[' + i + '][price_data][product_data][description]'] = p.firstName + ' ' + p.lastName;
-    payload['line_items[' + i + '][quantity]'] = '1';
-
-    // Alle Teilnehmerdaten als Stripe-Metadata → Fallback falls Sheet-Eintrag fehlschlägt
     payload['metadata[p' + i + '_firstName]'] = p.firstName;
     payload['metadata[p' + i + '_lastName]'] = p.lastName;
-    payload['metadata[p' + i + '_birthYear]'] = String(p.birthYear || '');
-    payload['metadata[p' + i + '_gender]'] = p.gender || '';
-    payload['metadata[p' + i + '_distance]'] = p.distance || '';
-    payload['metadata[p' + i + '_club]'] = p.club || '';
   });
 
-  // Optional Spomio donation as extra line item
+  // Optional donation as extra line item (siehe DONATION_PRODUCT_NAME oben)
   if (donation > 0) {
-    const idx = participants.length;
     const donationEur = (donation / 100).toFixed(2).replace('.', ',');
-    payload['line_items[' + idx + '][price_data][currency]'] = 'eur';
-    payload['line_items[' + idx + '][price_data][unit_amount]'] = String(donation);
-    payload['line_items[' + idx + '][price_data][product_data][name]'] = 'Spende Spomio e.V. Mindelheim';
-    payload['line_items[' + idx + '][price_data][product_data][description]'] = donationEur + ' EUR – Inklusionsverein für Kinder mit und ohne Behinderung';
-    payload['line_items[' + idx + '][quantity]'] = '1';
+    payload['line_items[1][price_data][currency]'] = 'eur';
+    payload['line_items[1][price_data][unit_amount]'] = String(donation);
+    payload['line_items[1][price_data][product_data][name]'] = DONATION_PRODUCT_NAME;
+    payload['line_items[1][price_data][product_data][description]'] = donationEur + ' EUR – ' + DONATION_DESCRIPTION_SUFFIX;
+    payload['line_items[1][quantity]'] = '1';
   }
 
   const response = UrlFetchApp.fetch(url, {
@@ -647,18 +702,33 @@ function onSheetEdit(e) {
 
 function testAddRow() {
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  const orderId = 'order_test_' + Date.now();
   sheet.appendRow([
     new Date().toLocaleString('de-DE'), // Timestamp
     'Test',                              // Vorname
     'User',                              // Nachname
     'test@example.com',                  // Email
-    '1990',                              // Jahrgang
-    'm',                                 // Geschlecht
-    '5.3km',                             // Strecke
-    'Test Club',                         // Verein
+    'Die Testläufer',                    // Team
+    'Team',                              // Typ
+    '-',                                 // Strecke (ungenutzt)
+    '-',                                 // Verein (ungenutzt)
     'Bezahlt',                           // Status
-    'order_test_' + Date.now(),          // OrderID
+    orderId,                             // OrderID
     'test_payment_id',                   // Stripe Payment ID
     ''                                   // Startnummer
+  ]);
+  sheet.appendRow([
+    new Date().toLocaleString('de-DE'),
+    'Test',
+    'Partner',
+    'test@example.com',
+    'Die Testläufer',
+    'Team',
+    '-',
+    '-',
+    'Bezahlt',
+    orderId,
+    'test_payment_id',
+    ''
   ]);
 }

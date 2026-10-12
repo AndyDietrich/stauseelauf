@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anmeldung erfolgreich - Stauseelauf 2026</title>
+    <title>Anmeldung erfolgreich - Nikolauslauf 2026</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/styles.css">
@@ -106,7 +106,7 @@
 <body class="success-page">
     <header class="hero" style="padding: 30px 20px;">
         <div class="container">
-            <h1 style="font-size: 1.8rem; margin: 0;">Stauseelauf 2026</h1>
+            <h1 style="font-size: 1.8rem; margin: 0;">Nikolauslauf 2026</h1>
             <p class="subtitle" style="margin: 5px 0 0 0;">TSV Bad Wörishofen</p>
         </div>
     </header>
@@ -120,7 +120,7 @@
             </div>
             <h1>Anmeldung erfolgreich!</h1>
             <p>
-                Vielen Dank für deine Anmeldung zum Stauseelauf 2026.
+                Vielen Dank für deine Anmeldung zum Nikolauslauf 2026.
                 Deine Zahlung wurde erfolgreich verarbeitet.
             </p>
             <p>
@@ -132,22 +132,11 @@
             <div class="highlight">
                 <h3>Wichtige Infos für den Lauf</h3>
                 <ul>
-                    <li><strong>Datum:</strong> 07. August 2026</li>
-                    <li><strong>Startaufstellung:</strong> 17:50 Uhr</li>
-                    <li><strong>Start:</strong> 18:00 Uhr</li>
-                    <li><strong>Ort:</strong> Seglerheim am Stausee</li>
-                    <li><strong>Adresse:</strong> Am Stausee 2, 86879 Wiedergeltingen</li>
+                    <li><strong>Datum:</strong> 6. Dezember 2026</li>
+                    <li><strong>Start:</strong> 11:00 Uhr</li>
+                    <li><strong>Ort:</strong> Tennisheim im Kurpark</li>
+                    <li><strong>Adresse:</strong> Hermann-Aust-Straße 28, 86825 Bad Wörishofen</li>
                 </ul>
-            </div>
-
-            <div style="background:#eef4fc; border-left:4px solid #3b7fd4; border-radius:10px; padding:18px 20px; margin:20px 0; text-align:left; display:flex; align-items:center; gap:16px;">
-                <img src="images/fahrmob-logo.jpg" alt="fahrmob" style="width:60px; height:auto; flex-shrink:0;">
-                <div>
-                    <strong style="color:#1a5f7a; display:block; margin-bottom:4px;">Gemeinsam hinfahren?</strong>
-                    <span style="font-size:0.88rem; color:#555;">Finde oder biete eine Mitfahrgelegenheit über <strong>fahrmob</strong> – die lokale Mitfahrplattform.</span>
-                    <br>
-                    <a href="https://www.fahrmob.eco/fahrplan/veranstaltung/44a95a40-189e-4e15-80bf-69071dc9e780" target="_blank" rel="noopener" style="font-size:0.88rem; color:#3b7fd4; font-weight:600;">Zur fahrmob-Veranstaltungsseite →</a>
-                </div>
             </div>
 
             <button class="print-btn" onclick="window.print()">Seite drucken / als PDF speichern</button>
@@ -170,24 +159,18 @@
     <script>
         const data = JSON.parse(sessionStorage.getItem('registrationData') || 'null');
         if (data) {
-            const distanceLabel = d => d === '10.6km' ? '10,5 km' : '3,5 km';
-            const genderLabel = g => g === 'w' ? 'Weiblich' : g === 'd' ? 'Divers' : 'Männlich';
-
-            let html = `<p style="font-weight:600;color:#1a5f7a;margin-bottom:12px;">Angemeldete Personen</p>`;
-            html += `<p style="margin-bottom:12px;color:#444;"><strong>E-Mail:</strong> ${data.email}</p>`;
-
+            let html = `<p style="font-weight:600;color:#1a5f7a;margin-bottom:12px;">Deine Anmeldung</p>`;
+            html += `<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">`;
+            html += `<tr><td style="padding:3px 12px 3px 0;color:#666;white-space:nowrap;">E-Mail</td><td>${data.email}</td></tr>`;
+            html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">Startart</td><td><strong>${data.startType === 'solo' ? 'Einzelstarter' : 'Team'}</strong></td></tr>`;
+            if (data.teamName) {
+                html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">Teamname</td><td>${data.teamName}</td></tr>`;
+            }
             data.participants.forEach((p, i) => {
-                if (data.participants.length > 1) {
-                    html += `<p style="font-weight:600;margin:${i > 0 ? '14px' : '0'} 0 6px;color:#333;">Person ${i + 1}</p>`;
-                }
-                html += `<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">`;
-                html += `<tr><td style="padding:3px 12px 3px 0;color:#666;white-space:nowrap;">Name</td><td><strong>${p.firstName} ${p.lastName}</strong></td></tr>`;
-                html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">Jahrgang</td><td>${p.birthYear}</td></tr>`;
-                html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">Geschlecht</td><td>${genderLabel(p.gender)}</td></tr>`;
-                html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">Strecke</td><td>${distanceLabel(p.distance)}</td></tr>`;
-                if (p.club && p.club !== '-') html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">Verein</td><td>${p.club}</td></tr>`;
-                html += `</table>`;
+                const label = data.participants.length > 1 ? `Person ${i + 1}` : 'Name';
+                html += `<tr><td style="padding:3px 12px 3px 0;color:#666;">${label}</td><td><strong>${p.firstName} ${p.lastName}</strong></td></tr>`;
             });
+            html += `</table>`;
 
             const summary = document.getElementById('registration-summary');
             summary.innerHTML = html;

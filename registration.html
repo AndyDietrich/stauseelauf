@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anmeldung - Stauseelauf 2026</title>
-    <meta name="description" content="Online-Anmeldung zum Stauseelauf 2026. Anmeldeschluss: 06.08.2026. Strecken: 3,5 km und 10,5 km (Ausweichstrecke). Organisationsbeitrag 15 EUR.">
+    <title>Anmeldung - Nikolauslauf 2026</title>
+    <meta name="description" content="Online-Anmeldung zum Nikolauslauf 2026. Anmeldeschluss: 06.12.2026, 10:00 Uhr. 2er-Team-Staffel im Kurpark, 25 EUR pro Team / 20 EUR Einzelstarter.">
     <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/styles.css">
     <style>
@@ -27,28 +27,29 @@
             color: var(--primary-color);
             margin: 0;
         }
-        .remove-participant-btn {
-            background: none;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 4px 10px;
-            cursor: pointer;
-            color: #666;
-            font-size: 0.85rem;
+        .start-type-choice {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
         }
-        .remove-participant-btn:hover { background: #fee; border-color: #c00; color: #c00; }
-        .add-participant-btn {
-            width: 100%;
-            padding: 12px;
-            background: none;
-            border: 2px dashed #1a5f7a;
-            border-radius: 10px;
-            color: #1a5f7a;
-            font-size: 0.95rem;
+        .start-type-option {
+            flex: 1;
+            min-width: 220px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px 18px;
             cursor: pointer;
-            margin-bottom: 20px;
+            transition: border-color 0.15s, background 0.15s;
         }
-        .add-participant-btn:hover { background: rgba(26, 95, 122, 0.05); }
+        .start-type-option:hover { border-color: #1a5f7a; }
+        .start-type-option.selected {
+            border-color: #1a5f7a;
+            background: rgba(26, 95, 122, 0.06);
+        }
+        .start-type-option input { margin-right: 10px; }
+        .start-type-option .st-title { font-weight: 700; color: var(--primary-color); }
+        .start-type-option .st-desc { font-size: 0.85rem; color: #666; margin: 4px 0 0 24px; }
     </style>
 </head>
 <body>
@@ -56,13 +57,12 @@
         <div class="container">
             <a href="/" class="nav-brand">
                 <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen" class="nav-logo">
-                Stauseelauf 2026
+                Nikolauslauf 2026
             </a>
             <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Start</a></li>
-                <li class="hidden"><a href="/registration" class="active">Anmeldung</a></li>
-                <li><a href="/strecke">Strecke</a></li>
+                <li><a href="/registration" class="active">Anmeldung</a></li>
                 <li id="nav-teilnehmer" class="hidden"><a href="/teilnehmerliste">Teilnehmerliste</a></li>
                 <li id="nav-ergebnisse" class="hidden"><a href="/ergebnisse">Ergebnisse</a></li>
                 <li><a href="/galerie">Galerie</a></li>
@@ -72,11 +72,11 @@
 
     <header>
         <div class="hero-image">
-            <img src="images/StauseelaufHeroBanner.jpg" alt="Stauseelauf 2026 – Start">
+            <img src="images/NikolauslaufHeroBanner.jpg" alt="Nikolauslauf 2026 – Start">
         </div>
         <div class="hero-content">
             <h1>Online-Anmeldung</h1>
-            <p class="subtitle">Stauseelauf 2026 - 7. August 2026</p>
+            <p class="subtitle">Nikolauslauf 2026 - 6. Dezember 2026</p>
         </div>
     </header>
 
@@ -85,16 +85,37 @@
             <div id="member-banner" style="display:none; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:14px 18px; margin-bottom:20px; color:#2e7d32; font-weight:600;">
                 TSV-Mitglieder-Anmeldung – kostenlos und ohne Zahlung
             </div>
-            <p class="price-info">Organisationsbeitrag: <strong>15 EUR</strong></p>
-            <p class="deadline">Nur Online-Anmeldung – bis 30 Min. vor dem jeweiligen Start</p>
+            <p class="price-info">Teilnahmegebühr: <strong>25 EUR pro Team</strong> (20 EUR Einzelstarter)</p>
+            <p class="deadline">Nur Online-Anmeldung – bis 6.12.2026, 10:00 Uhr oder bis die 100 Plätze belegt sind</p>
 
             <form id="registration-form" class="registration-form">
+                <div class="start-type-choice" id="start-type-choice">
+                    <label class="start-type-option selected" data-type="team">
+                        <input type="radio" name="startType" value="team" checked onchange="onStartTypeChange()">
+                        <span class="st-title">Team (2 Personen) – 25 EUR</span>
+                        <p class="st-desc">Ihr meldet euch gemeinsam als Team an.</p>
+                    </label>
+                    <label class="start-type-option" data-type="solo">
+                        <input type="radio" name="startType" value="solo" onchange="onStartTypeChange()">
+                        <span class="st-title">Einzelstarter – 20 EUR</span>
+                        <p class="st-desc">Du läufst eigenständig mit, ohne Partner.</p>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-Mail *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group" id="team-name-group">
+                    <label for="teamName">Teamname (optional)</label>
+                    <input type="text" id="teamName" name="teamName" placeholder="z.B. Die Wichtel-Läufer">
+                </div>
+
                 <div id="participants-container">
-                    <!-- Erste Teilnehmer-Card -->
                     <div class="participant-card" data-index="0">
-                        <div class="form-group">
-                            <label for="email">E-Mail *</label>
-                            <input type="email" id="email" name="email" required>
+                        <div class="participant-card-header">
+                            <h3 id="p0-label">Person 1</h3>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -106,41 +127,35 @@
                                 <input type="text" name="lastName" required>
                             </div>
                         </div>
+                    </div>
+                    <div class="participant-card" data-index="1">
+                        <div class="participant-card-header">
+                            <h3 id="p1-label">Person 2</h3>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Jahrgang *</label>
-                                <input type="number" name="birthYear" min="1920" max="2024" placeholder="z.B. 1990" required>
+                                <label>Vorname *</label>
+                                <input type="text" name="firstName" required>
                             </div>
                             <div class="form-group">
-                                <label>Geschlecht *</label>
-                                <select name="gender" required onchange="updateDiversHint(this)">
-                                    <option value="">Bitte wählen</option>
-                                    <option value="m">Männlich</option>
-                                    <option value="w">Weiblich</option>
-                                    <option value="d">Divers</option>
-                                </select>
-                                <p class="divers-hint" style="display:none; margin: 4px 0 0; font-size: 0.85rem; color: #666;">Nach DLV-Standard wird in der Männer-Altersklasse gewertet.</p>
+                                <label>Nachname *</label>
+                                <input type="text" name="lastName" required>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Strecke *</label>
-                            <select name="distance" required onchange="updateTotalPrice()">
-                                <option value="">Bitte wählen</option>
-                                <option value="5.3km">3,5 km (1 Runde) – 15 EUR</option>
-                                <option value="10.6km">10,5 km (3 Runden) – 15 EUR</option>
-                                <option value="test" class="test-option" style="display:none">Testlauf (0,50 EUR) – nur zum Testen</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Verein / Team (optional)</label>
-                            <input type="text" name="club">
                         </div>
                     </div>
                 </div>
 
-                <button type="button" class="add-participant-btn" onclick="addParticipant()">+ Weitere Person hinzufügen</button>
-
                 <div class="spomio-donation-block" id="spomio-donation-block">
+                    <!-- SPENDENKAMPAGNE: aktuell "Kinder- und Jugendabteilung". Zum Zurückwechseln auf
+                         Spomio e.V.: diesen Header auskommentieren und den Spomio-Header darunter aktivieren. -->
+                    <div class="spomio-donation-header">
+                        <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen" class="spomio-donation-logo">
+                        <div>
+                            <h3>Für unsere Kinder- und Jugendabteilung spenden?</h3>
+                            <p>Unterstützt Trainingsausrüstung für unseren Nachwuchs</p>
+                        </div>
+                    </div>
+                    <!-- SPOMIO-VARIANTE (inaktiv) – zum Reaktivieren: Header oben auskommentieren, diesen hier einkommentieren.
                     <div class="spomio-donation-header">
                         <img src="images/spomio-logo.png" alt="Spomio e.V. Mindelheim" class="spomio-donation-logo">
                         <div>
@@ -148,6 +163,7 @@
                             <p>Inklusionsverein für Kinder mit und ohne Behinderung</p>
                         </div>
                     </div>
+                    -->
                     <div class="donation-amounts">
                         <label class="donation-option">
                             <input type="radio" name="donation" value="0" checked onchange="onDonationRadioChange()"> Keine Spende
@@ -183,7 +199,7 @@
                 </div>
 
                 <button type="submit" class="submit-btn" id="submit-btn">
-                    Weiter zur Zahlung (15 EUR)
+                    Weiter zur Zahlung (25 EUR)
                 </button>
 
                 <p class="payment-note">

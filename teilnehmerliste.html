@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teilnehmerliste - Stauseelauf 2026</title>
+    <title>Teilnehmerliste - Nikolauslauf 2026</title>
     <link rel="icon" href="images/logo_tsv_badwoerishofen.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -12,13 +12,12 @@
         <div class="container">
             <a href="/" class="nav-brand">
                 <img src="images/logo_tsv_badwoerishofen.svg" alt="TSV Bad Wörishofen" class="nav-logo">
-                Stauseelauf 2026
+                Nikolauslauf 2026
             </a>
             <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Start</a></li>
-                <li class="hidden"><a href="/registration">Anmeldung</a></li>
-                <li><a href="/strecke">Strecke</a></li>
+                <li><a href="/registration">Anmeldung</a></li>
                 <li id="nav-teilnehmer"><a href="/teilnehmerliste" class="active">Teilnehmerliste</a></li>
                 <li id="nav-ergebnisse" class="hidden"><a href="/ergebnisse">Ergebnisse</a></li>
                 <li><a href="/galerie">Galerie</a></li>
@@ -28,26 +27,22 @@
 
     <header>
         <div class="hero-image">
-            <img src="images/Stauseelauf004.jpg" alt="Stauseelauf - Läufer am Start">
+            <img src="images/NikolauslaufHeroBanner.jpg" alt="Nikolauslauf - Läufer am Start">
         </div>
         <div class="hero-content">
             <h1>Teilnehmerliste</h1>
-            <p class="subtitle">Stauseelauf 2026 - 7. August 2026</p>
+            <p class="subtitle">Nikolauslauf 2026 - 6. Dezember 2026</p>
         </div>
     </header>
 
     <main class="container">
         <section class="info-section" id="teilnehmer-section">
-            <div id="results-tabs" style="margin-bottom: 20px;">
-                <button class="tab-btn active" data-distance="5.3km" onclick="switchDistance('5.3km')">3,5 km</button>
-                <button class="tab-btn" data-distance="10.6km" onclick="switchDistance('10.6km')">10,5 km</button>
-            </div>
             <p id="participant-count" style="margin-bottom: 15px; color: #666;"></p>
             <table id="results-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Verein</th>
+                        <th>Team</th>
+                        <th>Teilnehmer</th>
                     </tr>
                 </thead>
                 <tbody id="results-body">

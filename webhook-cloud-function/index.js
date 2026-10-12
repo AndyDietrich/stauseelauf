@@ -33,7 +33,7 @@ exports.stripeWebhook = async (req, res) => {
         refId: session.metadata?.donationId || '',
         paymentIntent,
       });
-      console.log(`Spomio-Spende (direkt): ${amountEur} EUR`);
+      console.log(`Spende (direkt): ${amountEur} EUR`);
       return res.status(200).json({ received: true, donation: true });
     }
 
@@ -81,7 +81,7 @@ exports.stripeWebhook = async (req, res) => {
         refId: orderId,
         paymentIntent,
       });
-      console.log(`Spomio-Spende (mit Anmeldung): ${amountEur} EUR, Order ${orderId}`);
+      console.log(`Spende (mit Anmeldung): ${amountEur} EUR, Order ${orderId}`);
     }
 
     return res.status(200).json({ received: true, updated: updates.length });

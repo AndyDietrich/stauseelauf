@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Registration form setup
     const form = document.getElementById('registration-form');
     if (form) {
-        // Anmeldeschluss: 07.08.2026 sofort (= 00:00 UTC)
-        const DEADLINE = new Date('2026-08-07T00:00:00Z');
+        // Anmeldeschluss: 06.12.2026, 10:00 Uhr (1 Std. vor Start)
+        const DEADLINE = new Date('2026-12-06T09:00:00Z');
         if (new Date() >= DEADLINE) {
             const section = document.getElementById('anmeldung');
             if (section) {
@@ -30,26 +30,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="text-align:center; padding: 60px 20px; max-width: 520px; margin: 0 auto;">
                         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1a5f7a" stroke-width="1.5" style="margin-bottom:20px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         <h2 style="color:var(--primary-color);margin-bottom:12px;">Anmeldung geschlossen</h2>
-                        <p style="color:#555;font-size:1.05rem;line-height:1.7;">Der Anmeldeschluss war am 7. August 2026 um 17:50 Uhr.<br>Eine Nachmeldung ist nicht mehr möglich.</p>
-                        <p style="color:#888;margin-top:16px;">Wir freuen uns, euch beim nächsten Stauseelauf wieder begrüßen zu dürfen!</p>
+                        <p style="color:#555;font-size:1.05rem;line-height:1.7;">Der Anmeldeschluss war am 6. Dezember 2026 um 10:00 Uhr.<br>Eine Nachmeldung ist nicht mehr möglich.</p>
+                        <p style="color:#888;margin-top:16px;">Wir freuen uns, euch beim nächsten Nikolauslauf wieder begrüßen zu dürfen!</p>
                     </div>`;
             }
         } else {
         form.addEventListener('submit', handleFormSubmit);
         checkUrlParams();
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('testmode') === '1') {
-            document.querySelectorAll('.test-option').forEach(o => o.style.display = '');
-        }
         if (urlParams.get('mitglied') === '1') {
             isMemberMode = true;
             activateMemberMode();
-        }
-        // Setup divers hint for the first (static) participant card
-        const firstCard = document.querySelector('.participant-card');
-        if (firstCard) {
-            const genderSel = firstCard.querySelector('[name="gender"]');
-            if (genderSel) genderSel.setAttribute('onchange', 'updateDiversHint(this)');
         }
         } // end else (registration open)
     }
@@ -100,26 +91,42 @@ async function checkPublishStatus() {
 }
 
 // ============================================
-// MULTI-TEILNEHMER
+// START-TYP (Team / Einzelstarter)
 // ============================================
+const TEAM_PRICE_EUR = 25;
+const SOLO_PRICE_EUR = 20;
+
+function onStartTypeChange() {
+    const type = document.querySelector('input[name="startType"]:checked').value;
+
+    document.querySelectorAll('.start-type-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.type === type);
+    });
+
+    const p2 = document.querySelector('.participant-card[data-index="1"]');
+    const p2Inputs = p2 ? p2.querySelectorAll('input') : [];
+    if (type === 'solo') {
+        if (p2) p2.style.display = 'none';
+        p2Inputs.forEach(i => i.required = false);
+        document.getElementById('p0-label').textContent = 'Deine Daten';
+    } else {
+        if (p2) p2.style.display = '';
+        p2Inputs.forEach(i => i.required = true);
+        document.getElementById('p0-label').textContent = 'Person 1';
+    }
+
+    updateTotalPrice();
+}
+
 // ============================================
 // MITGLIEDS-MODUS
 // ============================================
-function applyMemberModeToCard(card) {
-    card.querySelectorAll('select[name="distance"] option').forEach(opt => {
-        if (opt.value === '5.3km')      opt.textContent = '3,5 km (1 Runde)';
-        else if (opt.value === '10.6km') opt.textContent = '10,5 km (3 Runden)';
-    });
-}
-
 function activateMemberMode() {
     const banner = document.getElementById('member-banner');
     if (banner) banner.style.display = 'block';
 
     const donationBlock = document.getElementById('spomio-donation-block');
     if (donationBlock) donationBlock.style.display = 'none';
-
-    document.querySelectorAll('.participant-card').forEach(card => applyMemberModeToCard(card));
 
     const priceInfo = document.querySelector('.price-info');
     if (priceInfo) priceInfo.style.display = 'none';
@@ -128,81 +135,6 @@ function activateMemberMode() {
     if (paymentNote) paymentNote.textContent = 'Deine Anmeldung wird direkt bestätigt – keine Zahlung erforderlich.';
 
     updateTotalPrice();
-}
-
-function updateDiversHint(select) {
-    const hint = select.nextElementSibling;
-    if (hint && hint.classList.contains('divers-hint')) {
-        hint.style.display = select.value === 'd' ? 'block' : 'none';
-    }
-}
-
-function addParticipant() {
-    const container = document.getElementById('participants-container');
-    const index = container.querySelectorAll('.participant-card').length;
-
-    const card = document.createElement('div');
-    card.className = 'participant-card';
-    card.dataset.index = index;
-    card.innerHTML = `
-        <div class="participant-card-header">
-            <button type="button" class="remove-participant-btn" onclick="removeParticipant(this)">Entfernen</button>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label>Vorname *</label>
-                <input type="text" name="firstName" required>
-            </div>
-            <div class="form-group">
-                <label>Nachname *</label>
-                <input type="text" name="lastName" required>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label>Jahrgang *</label>
-                <input type="number" name="birthYear" min="1920" max="2024" placeholder="z.B. 1990" required>
-            </div>
-            <div class="form-group">
-                <label>Geschlecht *</label>
-                <select name="gender" required onchange="updateDiversHint(this)">
-                    <option value="">Bitte wählen</option>
-                    <option value="m">Männlich</option>
-                    <option value="w">Weiblich</option>
-                    <option value="d">Divers</option>
-                </select>
-                <p class="divers-hint" style="display:none; margin: 4px 0 0; font-size: 0.85rem; color: #666;">Nach DLV-Standard wird in der Männer-Altersklasse gewertet.</p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Strecke *</label>
-            <select name="distance" required onchange="updateTotalPrice()">
-                <option value="">Bitte wählen</option>
-                <option value="5.3km">3,5 km (1 Runde) – 15 EUR</option>
-                <option value="10.6km">10,5 km (3 Runden) – 15 EUR</option>
-                <option value="test" class="test-option" style="display:none">Testlauf (0,50 EUR) – nur zum Testen</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Verein / Team (optional)</label>
-            <input type="text" name="club">
-        </div>
-    `;
-    container.appendChild(card);
-    if (isMemberMode) applyMemberModeToCard(card);
-    renumberCards();
-}
-
-function removeParticipant(btn) {
-    btn.closest('.participant-card').remove();
-    renumberCards();
-    updateTotalPrice();
-}
-
-function renumberCards() {
-    document.querySelectorAll('.participant-card').forEach((card, i) => {
-        card.dataset.index = i;
-    });
 }
 
 function getDonationCents() {
@@ -232,27 +164,21 @@ function updateTotalPrice() {
         if (btn) btn.textContent = 'Kostenlos anmelden (TSV-Mitglied)';
         return;
     }
-    const selects = document.querySelectorAll('#participants-container select[name="distance"]');
-    let total = 0;
-    selects.forEach(sel => {
-        if (sel.value === 'test') total += 0.5;
-        else if (sel.value) total += 15;
-    });
+    const type = document.querySelector('input[name="startType"]:checked').value;
+    const total = type === 'solo' ? SOLO_PRICE_EUR : TEAM_PRICE_EUR;
     const donationEur = getDonationCents() / 100;
     const donationLabel = donationEur > 0 ? ` + ${donationEur} EUR Spende` : '';
     if (btn) btn.textContent = `Weiter zur Zahlung (${total} EUR${donationLabel})`;
 }
 
 function getParticipants() {
+    const type = document.querySelector('input[name="startType"]:checked').value;
     const cards = document.querySelectorAll('.participant-card');
-    return Array.from(cards).map(card => ({
+    const list = Array.from(cards).map(card => ({
         firstName: card.querySelector('[name="firstName"]').value.trim(),
         lastName:  card.querySelector('[name="lastName"]').value.trim(),
-        birthYear: card.querySelector('[name="birthYear"]').value,
-        gender:    card.querySelector('[name="gender"]').value,
-        distance:  card.querySelector('[name="distance"]').value,
-        club:      card.querySelector('[name="club"]').value.trim() || '-',
     }));
+    return type === 'solo' ? [list[0]] : list;
 }
 
 // ============================================
@@ -266,10 +192,12 @@ async function handleFormSubmit(e) {
     removeError();
 
     const email = document.getElementById('email').value.trim();
+    const startType = document.querySelector('input[name="startType"]:checked').value;
+    const teamName = document.getElementById('teamName').value.trim();
     const participants = getParticipants();
 
     if (isMemberMode) {
-        await handleMemberSubmit(email, participants);
+        await handleMemberSubmit(email, startType, teamName, participants);
         return;
     }
 
@@ -277,6 +205,8 @@ async function handleFormSubmit(e) {
         const params = new URLSearchParams({
             action: 'createCheckout',
             email: email,
+            startType: startType,
+            teamName: teamName,
             participants: JSON.stringify(participants),
             donation: String(getDonationCents())
         });
@@ -288,9 +218,14 @@ async function handleFormSubmit(e) {
             // Daten für Success-Seite zwischenspeichern
             sessionStorage.setItem('registrationData', JSON.stringify({
                 email: email,
+                startType: startType,
+                teamName: teamName,
                 participants: participants
             }));
             window.location.href = result.checkoutUrl;
+        } else if (result.error === 'ausgebucht') {
+            setLoading(false);
+            showError('Leider sind bereits alle 100 Plätze vergeben.');
         } else if (result.error) {
             setLoading(false);
             showError('Fehler: ' + result.error);
@@ -305,11 +240,13 @@ async function handleFormSubmit(e) {
     }
 }
 
-async function handleMemberSubmit(email, participants) {
+async function handleMemberSubmit(email, startType, teamName, participants) {
     try {
         const params = new URLSearchParams({
             action: 'registerMember',
             email: email,
+            startType: startType,
+            teamName: teamName,
             participants: JSON.stringify(participants)
         });
 
@@ -317,8 +254,11 @@ async function handleMemberSubmit(email, participants) {
         const result = await response.json();
 
         if (result.success) {
-            sessionStorage.setItem('registrationData', JSON.stringify({ email, participants }));
+            sessionStorage.setItem('registrationData', JSON.stringify({ email, startType, teamName, participants }));
             window.location.href = '/success';
+        } else if (result.error === 'ausgebucht') {
+            setLoading(false);
+            showError('Leider sind bereits alle 100 Plätze vergeben.');
         } else {
             setLoading(false);
             showError('Fehler: ' + (result.error || 'Unbekannter Fehler'));
@@ -349,21 +289,14 @@ function validateForm() {
         email.classList.remove('error');
     }
 
-    // Alle Teilnehmer-Cards
+    // Teilnehmer-Cards (nur sichtbare, d.h. bei Einzelstartern nur Person 1)
     document.querySelectorAll('.participant-card').forEach(card => {
-        ['firstName', 'lastName', 'gender', 'distance'].forEach(name => {
+        if (card.style.display === 'none') return;
+        ['firstName', 'lastName'].forEach(name => {
             const field = card.querySelector(`[name="${name}"]`);
             if (!field.value.trim()) { field.classList.add('error'); isValid = false; }
             else field.classList.remove('error');
         });
-
-        const by = card.querySelector('[name="birthYear"]');
-        const year = parseInt(by.value);
-        if (!by.value || isNaN(year) || year < 1920 || year > new Date().getFullYear()) {
-            by.classList.add('error'); isValid = false;
-        } else {
-            by.classList.remove('error');
-        }
     });
 
     // Checkboxen
@@ -420,7 +353,6 @@ function checkUrlParams() {
 // TEILNEHMERLISTE
 // ============================================
 let allParticipants = [];
-let currentDistance = '5.3km';
 
 async function loadParticipants() {
     try {
@@ -435,7 +367,7 @@ async function loadParticipants() {
 
         allParticipants = data.data || [];
         if (allParticipants.length > 0) {
-            showParticipants('5.3km');
+            showParticipants();
         } else {
             showNoDataMessage('Noch keine Teilnehmer angemeldet.');
         }
@@ -445,31 +377,36 @@ async function loadParticipants() {
     }
 }
 
-function showParticipants(distance) {
-    currentDistance = distance;
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.distance === distance);
+function showParticipants() {
+    // Pro Anmeldung (OrderID) ein Team/Einzelstarter-Eintrag, sortiert nach Teamname
+    const groups = {};
+    allParticipants.forEach(r => {
+        const key = r.OrderID || (r.Vorname + r.Nachname);
+        if (!groups[key]) {
+            groups[key] = { team: r.Team || '', typ: r.Typ || 'Team', members: [] };
+        }
+        groups[key].members.push(`${r.Vorname} ${r.Nachname}`.trim());
     });
 
-    const filtered = allParticipants
-        .filter(r => r.Strecke === distance)
-        .sort((a, b) => (a.Nachname || '').localeCompare(b.Nachname || ''));
+    const filtered = Object.values(groups)
+        .sort((a, b) => (a.team || a.members[0] || '').localeCompare(b.team || b.members[0] || ''));
 
+    const personCount = allParticipants.length;
     const countEl = document.getElementById('participant-count');
     if (countEl) {
-        countEl.textContent = `${filtered.length} Teilnehmer`;
+        countEl.textContent = `${filtered.length} Anmeldungen (${personCount} Personen)`;
     }
 
     const tbody = document.getElementById('results-body');
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 40px; color: #666;">Keine Teilnehmer für diese Strecke.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 40px; color: #666;">Noch keine Teilnehmer angemeldet.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filtered.map(r => `
+    tbody.innerHTML = filtered.map(g => `
         <tr>
-            <td>${r.Vorname} ${r.Nachname}</td>
-            <td>${r.Verein || '-'}</td>
+            <td>${g.typ === 'Einzelstarter' ? 'Einzelstarter' : (g.team || 'Team')}</td>
+            <td>${g.members.join(' &amp; ')}</td>
         </tr>
     `).join('');
 }
@@ -478,6 +415,7 @@ function showParticipants(distance) {
 // ERGEBNISSE
 // ============================================
 let allResults = [];
+let currentDistance = '5.3km';
 let currentAgeGroup = 'Gesamt';
 
 // Age group options for dropdown (including M/W for all men/women)
