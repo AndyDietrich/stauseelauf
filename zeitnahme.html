@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zeitnahme – Stauseelauf 2026</title>
+<title>Zeitnahme</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #0d0d14;
-  color: #fff;
+  background: #f2f4f7;
+  color: #1a1d21;
   height: 100vh;
   overflow: hidden;
 }
@@ -20,21 +20,23 @@ body {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  background: #0d2b1a;
-  border-bottom: 1px solid #00c853;
-  padding: 14px 24px;
+  background: #e3f8ec;
+  border-bottom: 2px solid #16a34a;
+  padding: 16px 24px;
   z-index: 200;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  font-size: 1rem;
+  font-size: 1.15rem;
+  color: #14532d;
+  font-weight: 500;
 }
 #restore-banner button {
-  border: none; border-radius: 7px;
-  padding: 8px 20px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+  border: none; border-radius: 8px;
+  padding: 10px 22px; cursor: pointer; font-weight: 700; font-size: 1rem;
 }
-.btn-restore { background: #00c853; color: #000; }
-.btn-dismiss { background: #2a2a3e; color: #aaa; margin-left: 8px; }
+.btn-restore { background: #16a34a; color: #fff; }
+.btn-dismiss { background: #d5dae0; color: #333; margin-left: 8px; }
 
 /* ── READY SCREEN ── */
 #ready-screen {
@@ -46,35 +48,36 @@ body {
   gap: 44px;
 }
 .ready-title {
-  font-size: 1rem;
-  color: #444;
+  font-size: 1.25rem;
+  color: #5b6572;
   letter-spacing: 3px;
   text-transform: uppercase;
+  font-weight: 700;
 }
 .ready-clock {
   font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
   font-size: 8rem;
-  font-weight: 200;
-  color: #fff;
+  font-weight: 300;
+  color: #1a1d21;
   letter-spacing: -3px;
   line-height: 1;
 }
-.ready-clock .dim { color: #2a2a2a; }
+.ready-clock .dim { color: #b8bfc8; }
 #start-btn {
-  background: #00c853;
-  color: #000;
+  background: #16a34a;
+  color: #fff;
   border: none;
   border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  font-size: 1.8rem;
+  width: 210px;
+  height: 210px;
+  font-size: 2rem;
   font-weight: 800;
   letter-spacing: 4px;
   cursor: pointer;
   transition: transform 0.1s, background 0.1s;
-  box-shadow: 0 0 70px rgba(0,200,83,0.2);
+  box-shadow: 0 12px 40px rgba(22,163,74,0.35);
 }
-#start-btn:hover { background: #00e676; transform: scale(1.04); }
+#start-btn:hover { background: #15803d; transform: scale(1.04); }
 #start-btn:active { transform: scale(0.96); }
 
 /* ── TWO-COLUMN LAYOUT ── */
@@ -87,154 +90,158 @@ body {
 
 /* ── LEFT PANEL ── */
 .left-panel {
-  width: 360px;
+  width: 400px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: #111118;
-  border-right: 1px solid #1a1a2e;
-  padding: 28px 24px 20px;
+  background: #ffffff;
+  border-right: 1px solid #d9dee4;
+  padding: 30px 26px 22px;
 }
 
 .panel-title {
-  font-size: 0.72rem;
-  color: #383848;
+  font-size: 0.95rem;
+  color: #5b6572;
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 24px;
+  font-weight: 700;
+  margin-bottom: 26px;
 }
 
 .clock-label {
-  font-size: 0.75rem;
-  color: #444;
+  font-size: 0.95rem;
+  color: #5b6572;
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  font-weight: 600;
+  margin-bottom: 10px;
   text-align: center;
 }
 #main-clock {
   font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
   font-size: 5.5rem;
-  font-weight: 200;
-  color: #00e676;
+  font-weight: 300;
+  color: #15803d;
   letter-spacing: -2px;
   line-height: 1;
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
-#main-clock .dim { font-size: 3.5rem; color: #1a3a1a; }
-#main-clock.ended { color: #fff; }
-#main-clock.ended .dim { color: #333; }
+#main-clock .dim { font-size: 3.5rem; color: #86c9a3; }
+#main-clock.ended { color: #1a1d21; }
+#main-clock.ended .dim { color: #b8bfc8; }
 
 #split-btn {
   display: block;
   width: 100%;
-  background: #00c853;
-  color: #000;
+  background: #16a34a;
+  color: #fff;
   border: none;
   border-radius: 14px;
-  padding: 24px;
-  font-size: 1.7rem;
+  padding: 26px;
+  font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: 4px;
   cursor: pointer;
   transition: transform 0.05s, background 0.08s;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
-#split-btn:hover { background: #00e676; }
-#split-btn:active { background: #fff; transform: scale(0.98); }
-#split-btn.flash { background: #fff; }
+#split-btn:hover { background: #15803d; }
+#split-btn:active { background: #0f5c2e; transform: scale(0.98); }
+#split-btn.flash { background: #22c55e; }
 #split-btn:disabled {
-  background: #1a1a2e;
-  color: #2a2a4e;
+  background: #e5e8ec;
+  color: #9aa3ad;
   cursor: not-allowed;
-  font-size: 1rem;
+  font-size: 1.1rem;
   letter-spacing: 2px;
   transform: none;
 }
 
 .key-hint {
-  font-size: 0.82rem;
-  color: #383848;
+  font-size: 0.95rem;
+  color: #5b6572;
   text-align: center;
   margin-bottom: 28px;
-  line-height: 1.8;
+  line-height: 1.9;
 }
 kbd {
-  background: #1a1a2e;
-  border: 1px solid #252540;
+  background: #eef1f4;
+  border: 1px solid #cdd4db;
   border-radius: 4px;
-  padding: 2px 7px;
-  font-size: 0.78rem;
-  color: #666;
+  padding: 2px 8px;
+  font-size: 0.9rem;
+  color: #333;
 }
 
 .divider {
   height: 1px;
-  background: #1a1a2e;
-  margin-bottom: 22px;
+  background: #e1e5ea;
+  margin-bottom: 24px;
 }
 
 .stat-row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 .stat-num {
-  font-size: 2rem;
-  font-weight: 300;
-  color: #fff;
+  font-size: 2.4rem;
+  font-weight: 400;
+  color: #1a1d21;
   font-variant-numeric: tabular-nums;
   font-family: 'SF Mono', 'Menlo', monospace;
 }
-.stat-label { font-size: 1rem; color: #555; }
+.stat-label { font-size: 1.15rem; color: #5b6572; }
 #bib-status {
-  font-size: 0.9rem;
-  color: #444;
+  font-size: 1.05rem;
+  color: #5b6572;
   min-height: 1.3em;
+  font-weight: 500;
 }
-#bib-status.complete { color: #00c853; }
+#bib-status.complete { color: #16a34a; font-weight: 700; }
 
 .spacer { flex: 1; }
 
 .bottom-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-top: 20px;
 }
 
 #copy-btn {
-  background: #1a3a5a;
-  color: #7ac8e8;
-  border: 1px solid #1e4a70;
+  background: #e8f1fd;
+  color: #1d4ed8;
+  border: 1px solid #a9c9f5;
   border-radius: 10px;
-  padding: 14px 20px;
-  font-size: 1rem;
+  padding: 16px 20px;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: background 0.15s;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
 }
-#copy-btn:hover { background: #1e4a70; }
-#copy-btn.success { background: #00c853; color: #000; border-color: #00c853; font-weight: 700; }
+#copy-btn:hover { background: #d7e6fb; }
+#copy-btn.success { background: #16a34a; color: #fff; border-color: #16a34a; font-weight: 700; }
 
 #end-btn {
-  background: none;
-  border: 1px solid #1e1e30;
-  color: #444;
+  background: #ffffff;
+  border: 1px solid #d1d6dc;
+  color: #6b7280;
   border-radius: 10px;
-  padding: 14px 20px;
-  font-size: 1rem;
+  padding: 16px 20px;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.15s;
   text-align: center;
+  font-weight: 500;
 }
-#end-btn:hover { color: #ff8080; border-color: #552020; background: #1a0a0a; }
-#end-btn.confirm { color: #ff6b6b; border-color: #ff3333; background: #200a0a; font-weight: 600; }
-#end-btn.done { color: #00c853; border-color: #1a3a1a; cursor: default; }
-#end-btn.done:hover { background: none; color: #00c853; border-color: #1a3a1a; }
+#end-btn:hover { color: #dc2626; border-color: #f0a5a5; background: #fef2f2; }
+#end-btn.confirm { color: #dc2626; border-color: #dc2626; background: #fef2f2; font-weight: 700; }
+#end-btn.done { color: #16a34a; border-color: #a7e0bd; cursor: default; font-weight: 700; }
+#end-btn.done:hover { background: #ffffff; color: #16a34a; border-color: #a7e0bd; }
 
 /* ── RIGHT PANEL ── */
 .right-panel {
@@ -242,6 +249,7 @@ kbd {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #f2f4f7;
 }
 
 .splits-scroll {
@@ -257,88 +265,92 @@ thead {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #0f0f1a;
+  background: #ffffff;
 }
 thead th {
-  padding: 13px 20px;
+  padding: 15px 22px;
   text-align: left;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #383848;
-  border-bottom: 1px solid #1a1a2e;
+  color: #5b6572;
+  border-bottom: 2px solid #d9dee4;
 }
-tbody tr { border-bottom: 1px solid #111118; }
-tbody tr:hover { background: #13131e; }
-tbody tr.latest { background: #0a1f0a; }
-tbody tr.latest .td-time { color: #00e676; }
+tbody tr { border-bottom: 1px solid #e4e8ec; background: #ffffff; }
+tbody tr:hover { background: #f6f8fa; }
+tbody tr.latest { background: #e3f8ec; }
+tbody tr.latest .td-time { color: #15803d; font-weight: 700; }
 tbody td {
-  padding: 11px 20px;
+  padding: 13px 22px;
   vertical-align: middle;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
 }
 
 .td-rank {
-  color: #383848;
-  width: 56px;
+  color: #6b7280;
+  width: 60px;
   font-variant-numeric: tabular-nums;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 .td-time {
   font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
   font-variant-numeric: tabular-nums;
-  color: #ccc;
-  width: 120px;
+  color: #1a1d21;
+  width: 130px;
+  font-weight: 500;
 }
 .td-gap {
-  color: #383848;
-  font-size: 0.88rem;
+  color: #6b7280;
+  font-size: 1rem;
   font-family: 'SF Mono', 'Menlo', monospace;
-  width: 88px;
+  width: 92px;
 }
-.td-bib { width: 150px; }
+.td-bib { width: 170px; }
 .bib-input {
-  background: #1a1a2e;
-  border: 1px solid #252535;
+  background: #f4f6f8;
+  border: 2px solid #cdd4db;
   border-radius: 8px;
-  color: #fff;
-  font-size: 1.05rem;
-  padding: 7px 14px;
-  width: 120px;
+  color: #1a1d21;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  width: 130px;
   text-align: center;
   transition: border-color 0.15s, background 0.15s;
 }
 .bib-input:focus {
   outline: none;
-  border-color: #00c853;
-  background: #0a1f0a;
+  border-color: #16a34a;
+  background: #e3f8ec;
 }
 .bib-input.filled {
-  border-color: #1a3a1a;
-  color: #00e676;
-  background: #0a140a;
+  border-color: #16a34a;
+  color: #15803d;
+  background: #f0fbf4;
 }
-.td-del { width: 50px; text-align: center; }
+.td-del { width: 54px; text-align: center; }
 .del-btn {
   background: none;
   border: none;
-  color: #1e1e30;
+  color: #c0c6cd;
   cursor: pointer;
-  font-size: 1rem;
-  padding: 5px 9px;
-  border-radius: 5px;
+  font-size: 1.1rem;
+  padding: 6px 10px;
+  border-radius: 6px;
   transition: color 0.1s, background 0.1s;
 }
-.del-btn:hover { color: #ff6b6b; background: #2a0a0a; }
+.del-btn:hover { color: #dc2626; background: #fef2f2; }
 
 .empty-state {
-  padding: 80px 30px;
+  padding: 90px 30px;
   text-align: center;
-  color: #252535;
-  font-size: 1rem;
-  line-height: 1.7;
+  color: #8a929c;
+  font-size: 1.15rem;
+  line-height: 1.8;
 }
+.empty-state strong { color: #4b5563; }
 </style>
 </head>
 <body>
@@ -354,7 +366,7 @@ tbody td {
 
 <!-- READY SCREEN -->
 <div id="ready-screen">
-  <div class="ready-title">Stauseelauf 2026 · Zeitnahme</div>
+  <div class="ready-title">Zeitnahme</div>
   <div class="ready-clock">00:00<span class="dim">.0</span></div>
   <button id="start-btn" onclick="startTimer()">START</button>
 </div>
@@ -364,7 +376,7 @@ tbody td {
 
   <!-- LEFT: clock & controls -->
   <div class="left-panel">
-    <div class="panel-title">Stauseelauf 2026 · Zeitnahme</div>
+    <div class="panel-title">Zeitnahme</div>
 
     <div class="clock-label" id="clock-label">Laufzeit</div>
     <div id="main-clock">00:00<span class="dim">.0</span></div>
@@ -385,7 +397,7 @@ tbody td {
     <div class="spacer"></div>
 
     <div class="bottom-actions">
-      <button id="copy-btn" onclick="copyToClipboard()">📋 Für Sheets kopieren</button>
+      <button id="copy-btn" onclick="copyToClipboard()">📋 In Zwischenablage kopieren</button>
       <button id="end-btn" onclick="handleEndBtn()">⏹ Lauf beenden</button>
     </div>
   </div>
@@ -691,7 +703,7 @@ function copyToClipboard() {
   const done = () => {
     btn.textContent = '✓ ' + splits.length + ' Zeilen kopiert!';
     btn.classList.add('success');
-    setTimeout(() => { btn.textContent = '📋 Für Sheets kopieren'; btn.classList.remove('success'); }, 2500);
+    setTimeout(() => { btn.textContent = '📋 In Zwischenablage kopieren'; btn.classList.remove('success'); }, 2500);
   };
 
   navigator.clipboard.writeText(text).then(done).catch(() => {
