@@ -67,23 +67,17 @@ function toggleNav() {
 }
 
 async function checkPublishStatus() {
+    // "Ergebnisse Stauseelauf 2026" ist ein festes Archiv und bleibt unabhängig
+    // vom Live-Status des aktuellen Laufs immer sichtbar (siehe nav-ergebnisse
+    // in den HTML-Dateien: kein "hidden" mehr standardmäßig).
     try {
         const response = await fetch('data/data.json', { cache: 'no-cache' });
         const data = await response.json();
         const status = data.status || 'FALSE';
 
         const navTeilnehmer = document.getElementById('nav-teilnehmer');
-        const navErgebnisse = document.getElementById('nav-ergebnisse');
-
-        if (status === 'TEILNEHMERLISTE') {
-            if (navTeilnehmer) navTeilnehmer.classList.remove('hidden');
-            if (navErgebnisse) navErgebnisse.classList.add('hidden');
-        } else if (status === 'ERGEBNISLISTE') {
-            if (navTeilnehmer) navTeilnehmer.classList.add('hidden');
-            if (navErgebnisse) navErgebnisse.classList.remove('hidden');
-        } else {
-            if (navTeilnehmer) navTeilnehmer.classList.add('hidden');
-            if (navErgebnisse) navErgebnisse.classList.add('hidden');
+        if (navTeilnehmer) {
+            navTeilnehmer.classList.toggle('hidden', status !== 'TEILNEHMERLISTE');
         }
     } catch (e) {
         console.error('Error checking publish status:', e);
@@ -409,12 +403,23 @@ function showParticipants() {
         return;
     }
 
-    tbody.innerHTML = filtered.map(g => `
+    tbody.innerHTML = filtered.map(g => {
+        const isSolo = g.typ === 'Einzelstarter';
+        let teamLabel;
+        if (g.team) {
+            teamLabel = isSolo
+                ? `${g.team} <span style="color:#999;font-weight:400;">(Einzelstarter)</span>`
+                : g.team;
+        } else {
+            teamLabel = isSolo ? 'Einzelstarter' : 'Team';
+        }
+        return `
         <tr>
-            <td>${g.typ === 'Einzelstarter' ? 'Einzelstarter' : (g.team || 'Team')}</td>
+            <td>${teamLabel}</td>
             <td>${g.members.join(' &amp; ')}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // ============================================
@@ -461,7 +466,10 @@ const AGE_GROUP_OPTIONS = [
 
 async function loadResults() {
     try {
-        const response = await fetch('data/data.json', { cache: 'no-cache' });
+        // Feste Archiv-Datei für den Stauseelauf 2026 – wird NICHT mehr vom
+        // GitHub Action überschrieben (der aktualisiert nur noch data/data.json
+        // für den jeweils aktuellen/nächsten Lauf, z.B. Nikolauslauf).
+        const response = await fetch('data/stauseelauf-2026-ergebnisse.json', { cache: 'no-cache' });
         const data = await response.json();
 
         const status = data.status || 'FALSE';
