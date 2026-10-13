@@ -105,14 +105,20 @@ function onStartTypeChange() {
 
     const p2 = document.querySelector('.participant-card[data-index="1"]');
     const p2Inputs = p2 ? p2.querySelectorAll('input') : [];
+    const teamNameInput = document.getElementById('teamName');
+    const teamNameLabel = document.getElementById('teamName-label');
     if (type === 'solo') {
         if (p2) p2.style.display = 'none';
         p2Inputs.forEach(i => i.required = false);
         document.getElementById('p0-label').textContent = 'Deine Daten';
+        if (teamNameInput) teamNameInput.required = false;
+        if (teamNameLabel) teamNameLabel.textContent = 'Teamname (optional)';
     } else {
         if (p2) p2.style.display = '';
         p2Inputs.forEach(i => i.required = true);
         document.getElementById('p0-label').textContent = 'Person 1';
+        if (teamNameInput) teamNameInput.required = true;
+        if (teamNameLabel) teamNameLabel.textContent = 'Teamname *';
     }
 
     updateTotalPrice();
